@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebApp.Storage.Cloudinary\WebApp.Storage.Cloudinary.csproj" />
+    <ProjectReference Include="..\WebApp.Storage\WebApp.Storage.csproj" />
+  </ItemGroup>
+
+</Project>
