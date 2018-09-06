@@ -1,6 +1,6 @@
 ﻿CREATE TABLE [dbo].[Media] (
 	[MediaId]			INT				PRIMARY KEY		IDENTITY(1, 1),
-	[OriginalOriginalUri]		NVARCHAR(250)	NOT NULL,
+	[OriginalUri]		NVARCHAR(250)	NOT NULL,
 	[Thumbnail]			NVARCHAR(250)	NULL,
 	[Small]				NVARCHAR(250)	NULL,
 	[Description]		NVARCHAR(250)	NULL,

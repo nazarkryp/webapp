@@ -1,0 +1,32 @@
+<!-- <div class="watch-container" *ngIf="movie">
+    <div class="video-container">
+        <video controls>
+            <source src="{{directUri}}">
+        </video>
+        <h1>{{movie.title}}</h1>
+        <input type="text" value="{{movie.link}}" style="width: 100%;">
+    </div>
+</div> -->
+
+<div class="video-container" *ngIf="movie">
+    <video controls>
+        <!-- <source src="https://res.cloudinary.com/dpfmyl1mn/video/upload/v1507137526/photocloud/prod/lanafeshchuk/svug6bgevnebjbndgfpt.mp4"> -->
+        <source src="{{directUri}}">
+    </video>
+    <div class="video-container__details" fxLayout="row" fxLayoutAlign="space-between center">
+        <span class="title">{{movie.title}}</span>
+        <a mat-button color=primary>OPEN SOURCE</a>
+    </div>
+    <div>
+        <ul class="tags">
+            <li class="tag" *ngFor="let tag of tags;">
+                <a href="./search/{{studio}}/{{tag}}/1">#{{tag}}</a>
+            </li>
+        </ul>
+        <p class="description">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+            ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
+            qui officia deserunt mollit anim id est laborum
+        </p>
+    </div>
+</div>

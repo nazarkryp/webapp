@@ -1,0 +1,35 @@
+<header class="movies-header" fxLayout="row" fxLayoutAlign="space-between start">
+    <h3 class="movies-title">{{searchQuery ? 'SEARCH RESULTS FOR: ' + searchQuery : 'LATEST UPDATES'}}
+        <ng-container *ngIf="movies && movies.totalCount">({{movies.totalCount}})</ng-container>
+    </h3>
+    <!-- <button mat-button color="primary" (click)="refresh()">
+        REFRESH
+    </button> -->
+</header>
+<main *ngIf="movies && movies.data;">
+    <div class="movies-gallery" [class.loading]="isLoading">
+        <div *ngFor="let movie of movies.data; trackBy: trackMovie;">
+            <div mat-ripple class="movie-item" (mouseenter)="mouseenter(movie)" (mouseleave)="mouseleave(movie)" (click)="preview(movie)">
+                <!-- <img class="movie-thumbnail" [src]="movie.attachments[movie.selectedAttachment]?.url" alt="media-image" *ngIf="!isVideo(movie.attachments[movie.selectedAttachment]?.url)">
+                <video class="movie-thumbnail" *ngIf="isVideo(movie.attachments[movie.selectedAttachment]?.url)" loop autoplay muted>
+                    <source src="{{movie.attachments[movie.selectedAttachment]?.url}}">
+                </video> -->
+
+                <img class="movie-thumbnail" src="https://instagram.fdnk1-1.fna.fbcdn.net/vp/d8279b3aadecd24f61ae23dd97958c9c/5C252492/t51.2885-15/e35/38833152_236321767077355_1624871769724682240_n.jpg?_nc_eui2=AeFDX-6PsBxXEMM_ktzVM8_43SVYpWVQA1IAFzcO5748QdwI9JSg0GoopvkNHzgzAFahbW-2mrsQJ7sUstfWaj9Fn_n3D_wfd1ewTDGh7o4MXg" [hidden]="isVideo(movie.attachments[movie.selectedAttachment]?.url)">
+                <!-- <img class="movie-thumbnail" src="https://res.cloudinary.com/dpfmyl1mn/image/upload/v1531688331/photocloud/prod/lanafeshchuk/hn8swc9taiasrctj1mqz.jpg" [hidden]="isVideo(movie.attachments[movie.selectedAttachment]?.url)"> -->
+                <video class="movie-thumbnail" *ngIf="isVideo(movie.attachments[movie.selectedAttachment]?.url)" loop autoplay muted>
+                    <source src="https://res.cloudinary.com/dpfmyl1mn/video/upload/v1507137526/photocloud/prod/lanafeshchuk/svug6bgevnebjbndgfpt.mp4">
+                </video>
+                <div class="movie-duration">
+                    <span>{{movie.duration}}</span>
+                </div>
+            </div>
+            <footer class="movie-details">
+                <a class="movie-link" [routerLink]="['/watch', movies.studio.objectId, movie.objectId]" title="{{movie.title}}">{{movie.title | truncate:50 }}</a>
+            </footer>
+        </div>
+    </div>
+</main>
+<footer class="movies-footer" fxLayout="row" fxLayoutAlign="center center" *ngIf="movies && movies.data && movies.pagesCount;">
+    <movies-pagination [pagesCount]="movies.pagesCount" [currentPage]="pageIndex" (changed)="pageChanged($event)"></movies-pagination>
+</footer>

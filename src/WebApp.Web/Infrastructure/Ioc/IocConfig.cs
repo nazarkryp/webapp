@@ -5,7 +5,7 @@ using WebApp.Mapping.AutoMapper;
 using WebApp.Repositories.EntityFramework;
 using WebApp.Services;
 using WebApp.Storage.Cloudinary;
-using WebApp.Web.Messaging;
+// using WebApp.Web.Messaging;
 
 namespace WebApp.Web.Infrastructure.Ioc
 {
@@ -18,8 +18,8 @@ namespace WebApp.Web.Infrastructure.Ioc
             services.ConfigureCloudinary();
             services.ConfigureServices();
 
-            var queueConnectionString = configuration.GetConnectionString("StorageConnectionString");
-            services.AddSingleton<IEventPublisher, EventPublisher>(_ => new EventPublisher(queueConnectionString));
+            //var queueConnectionString = configuration.GetConnectionString("StorageConnectionString");
+            //services.AddSingleton<IEventPublisher, EventPublisher>(_ => new EventPublisher(queueConnectionString));
         }
     }
 }

@@ -1,0 +1,14 @@
+.pagination .mat-button.btn-previous,
+.pagination .mat-button.btn-next {
+    min-width: 100px;
+}
+
+.pagination .mat-button.btn-page,
+.pagination .mat-raised-button.btn-page {
+    min-width: auto;
+}
+
+.pagination .mat-button.btn-page.active {
+    background-color: crimson;
+    color: rgba(255, 255, 255, .87);
+}

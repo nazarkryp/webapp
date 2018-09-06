@@ -1,0 +1,6 @@
+export enum MovieAction {
+    SET_MOVIES = 'SET_MOVIES',
+    SET_STUDIO = 'SET_STUDIO',
+    CLEAN_MOVIES = 'CLEAN_MOVIES',
+    SEARCH_QUERY = 'SEARCH_QUERY'
+}

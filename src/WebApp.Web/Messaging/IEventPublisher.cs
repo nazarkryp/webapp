@@ -1,11 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿//using System.Threading.Tasks;
 
-using WebApp.Messaging;
+//using WebApp.Messaging;
 
-namespace WebApp.Web.Messaging
-{
-    public interface IEventPublisher
-    {
-        Task Publish(IEvent @event);
-    }
-}
+//namespace WebApp.Web.Messaging
+//{
+//    public interface IEventPublisher
+//    {
+//        Task Publish(IEvent @event);
+//    }
+//}

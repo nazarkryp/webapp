@@ -35,9 +35,13 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "WebApp.Database", "src\WebA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04_Functions", "04_Functions", "{C317D26A-EB80-4545-B939-B68E1D3DF14F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp.Messaging", "src\WebApp.Messaging\WebApp.Messaging.csproj", "{4A8632F8-7BD7-4A52-B4BD-67B5E727F267}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApp.Messaging", "src\WebApp.Messaging\WebApp.Messaging.csproj", "{4A8632F8-7BD7-4A52-B4BD-67B5E727F267}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp.MediaHandler", "src\WebApp.MediaHandler\WebApp.MediaHandler.csproj", "{2B4C0FDA-EA8F-4A0D-9AC0-2F0A56DD988E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApp.MediaHandler", "src\WebApp.MediaHandler\WebApp.MediaHandler.csproj", "{2B4C0FDA-EA8F-4A0D-9AC0-2F0A56DD988E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "05_Movies", "05_Movies", "{7E6FD7D1-11AE-431B-ACFF-5CE570FA2144}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApp.Studio", "src\WebApp.Studio\WebApp.Studio.csproj", "{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +103,10 @@ Global
 		{2B4C0FDA-EA8F-4A0D-9AC0-2F0A56DD988E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B4C0FDA-EA8F-4A0D-9AC0-2F0A56DD988E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B4C0FDA-EA8F-4A0D-9AC0-2F0A56DD988E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -117,6 +125,7 @@ Global
 		{1BAEDE64-474D-4BE0-B2DF-1AD5B556465A} = {B151678C-B288-4C22-A85E-62924709CEE8}
 		{4A8632F8-7BD7-4A52-B4BD-67B5E727F267} = {C317D26A-EB80-4545-B939-B68E1D3DF14F}
 		{2B4C0FDA-EA8F-4A0D-9AC0-2F0A56DD988E} = {C317D26A-EB80-4545-B939-B68E1D3DF14F}
+		{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F} = {7E6FD7D1-11AE-431B-ACFF-5CE570FA2144}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E60D3C3C-4B8B-4025-B39F-79907620312C}

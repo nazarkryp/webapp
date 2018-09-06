@@ -1,0 +1,33 @@
+.movie-dialog-container .mat-dialog-container {
+    padding: 0;
+    overflow: hidden;
+}
+
+.video-preview {
+    position: relative;
+}
+
+.video-preview--header {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 0) 100%);
+    color: rgba(255, 255, 255, .86);
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: .7rem .7rem 2.8rem;
+    box-sizing: border-box;
+    z-index: 1;
+}
+
+.video-preview--title {
+    font-size: 1.2em;
+}
+
+.video-preview--title:hover {
+    text-decoration: underline;
+}
+
+.video-preview--video {
+    margin: -1px;
+    max-height: calc(100vh - 25px);
+    vertical-align: bottom;
+}

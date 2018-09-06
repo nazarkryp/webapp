@@ -1,0 +1,8 @@
+<div class="pagination" fxLayout="row">
+    <button class="btn-previous" mat-button (click)="previous()" [disabled]="currentPage === 1">Previous</button>
+    <div *ngFor="let page of pages;">
+        <button class="btn-page" mat-button [disabled]=true *ngIf="showDots(page)">...</button>
+        <button class="btn-page" [class.active]="page === currentPage" *ngIf="displayPage(page)" mat-button (click)="change(page)">{{page}}</button>
+    </div>
+    <button class="btn-next" mat-button (click)="next()" [disabled]="currentPage === pages.length">Next</button>
+</div>

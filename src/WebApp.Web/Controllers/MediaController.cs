@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,26 +6,27 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using WebApp.Dto;
-using WebApp.Messaging;
+// using WebApp.Messaging;
 using WebApp.Services;
 using WebApp.Storage;
-using WebApp.Web.Messaging;
+// using WebApp.Web.Messaging;
 
 namespace WebApp.Web.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
     public class MediaController : ControllerBase
     {
         private readonly IMediaService _mediaService;
         private readonly IStorage<string> _storage;
-        private readonly IEventPublisher _eventPublisher;
+        // private readonly IEventPublisher _eventPublisher;
 
-        public MediaController(IMediaService mediaService, IStorage<string> storage, IEventPublisher eventPublisher)
+        public MediaController(IMediaService mediaService, IStorage<string> storage)
         {
             _mediaService = mediaService;
             _storage = storage;
-            _eventPublisher = eventPublisher;
+            // _eventPublisher = eventPublisher;
         }
 
         [HttpGet]
@@ -82,12 +82,12 @@ namespace WebApp.Web.Controllers
 
             var objectIds = media.Select(e => e.ObjectId);
 
-            // var result = await _storage.RemoveAsync(objectIds);
+            var result = await _storage.RemoveAsync(objectIds);
 
-            await _eventPublisher.Publish(new WebAppEvent
-            {
-                ObjectIds = objectIds
-            });
+            //await _eventPublisher.Publish(new WebAppEvent
+            //{
+            //    ObjectIds = objectIds
+            //});
 
             return Ok(new
             {
