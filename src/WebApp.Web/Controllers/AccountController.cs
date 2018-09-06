@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Security;
+using WebApp.Security.Configuration;
 
 namespace WebApp.Web.Controllers
 {
@@ -9,24 +12,33 @@ namespace WebApp.Web.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
+        private readonly IGoogleSecurityProvider _securityProvider;
+
+        public AccountController(IGoogleSecurityProvider securityProvider)
+        {
+            _securityProvider = securityProvider;
+        }
+
         [HttpGet]
         public IActionResult Index()
         {
-            var properties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action("/")
-            };
-
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+            return Redirect(_securityProvider.RedirectUri);
         }
 
-        public IActionResult Callback()
+        [HttpGet("callback")]
+        public async Task<IActionResult> Callback()
         {
-            return Ok(new
-            {
-                name = User.Identity.Name,
-                isAuthenticated = User.Identity.IsAuthenticated
-            });
+            var code = this.Request.Query["code"];
+
+            var token = await _securityProvider.GetAccessToken(code);
+
+            return Redirect($"http://localhost:4200#id_token={token.IdToken}");
+            //return Ok(new
+            //{
+            //    name = User.Identity.Name,
+            //    isAuthenticated = User.Identity.IsAuthenticated,
+            //    token = token
+            //});
         }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using WebApp.Security.Validators;
 using WebApp.Web.Infrastructure.Ioc;
 
 namespace WebApp.Web
@@ -23,22 +24,25 @@ namespace WebApp.Web
         {
             services.AddAuthentication(options =>
                 {
-                    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
                 })
-                .AddGoogle(options =>
-                {
-                    options.ClientId = "918518562893-19gsgkiuolsfuhmephemj5pt7co42sv0.apps.googleusercontent.com";
-                    options.ClientSecret = "aecweSQ3qBXvnkIuQbp3x9Y0";
-                })
-                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+                .AddJwtBearer(o =>
+                    {
+                        o.SecurityTokenValidators.Clear();
+                        o.Audience = "918518562893-19gsgkiuolsfuhmephemj5pt7co42sv0.apps.googleusercontent.com";
+                        o.SecurityTokenValidators.Add(new GoogleTokenValidator());
+                    }
+                );
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
-            services.AddSpaStaticFiles(configuration =>
-            {
-                configuration.RootPath = "Client/dist/client";
-            });
+            //services.AddSpaStaticFiles(configuration =>
+            //{
+            //    configuration.RootPath = "Client/dist/client";
+            //});
 
             services.AddApiVersioning();
 
@@ -57,11 +61,11 @@ namespace WebApp.Web
                 //app.UseHsts();
             }
 
-            //app.UseHttpsRedirection();
-            //app.UseAuthentication();
+            app.UseHttpsRedirection();
+            app.UseAuthentication();
 
-            app.UseStaticFiles();
-            app.UseSpaStaticFiles();
+            //app.UseStaticFiles();
+            //app.UseSpaStaticFiles();
 
             app.UseMvc(routes =>
             {
@@ -70,15 +74,15 @@ namespace WebApp.Web
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            app.UseSpa(spa =>
-            {
-                spa.Options.SourcePath = "Client";
+            //app.UseSpa(spa =>
+            //{
+            //    spa.Options.SourcePath = "Client";
 
-                if (env.IsDevelopment())
-                {
-                    spa.UseAngularCliServer(npmScript: "start");
-                }
-            });
+            //    if (env.IsDevelopment())
+            //    {
+            //        spa.UseAngularCliServer(npmScript: "start");
+            //    }
+            //});
         }
     }
 }

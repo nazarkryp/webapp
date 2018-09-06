@@ -3,8 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 using WebApp.Mapping.AutoMapper;
 using WebApp.Repositories.EntityFramework;
+using WebApp.Security;
+using WebApp.Security.Configuration;
 using WebApp.Services;
 using WebApp.Storage.Cloudinary;
+using WebApp.Web.Infrastructure.Security;
+
 // using WebApp.Web.Messaging;
 
 namespace WebApp.Web.Infrastructure.Ioc
@@ -17,6 +21,9 @@ namespace WebApp.Web.Infrastructure.Ioc
             services.ConfigureRepositories();
             services.ConfigureCloudinary();
             services.ConfigureServices();
+
+            services.AddSingleton<IGoogleConfiguration, GoogleConfiguration>();
+            services.AddTransient<IGoogleSecurityProvider, GoogleSecurityProvider>();
 
             //var queueConnectionString = configuration.GetConnectionString("StorageConnectionString");
             //services.AddSingleton<IEventPublisher, EventPublisher>(_ => new EventPublisher(queueConnectionString));

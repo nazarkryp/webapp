@@ -43,6 +43,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "05_Movies", "05_Movies", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApp.Studio", "src\WebApp.Studio\WebApp.Studio.csproj", "{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "06_Infrastructure", "06_Infrastructure", "{8190CC0B-6544-4F19-93F4-4ABF3A5EFE23}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp.Security", "WebApp.Security\WebApp.Security.csproj", "{0DAC36F0-A67B-4961-9B2C-8163C605238B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +111,10 @@ Global
 		{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DAC36F0-A67B-4961-9B2C-8163C605238B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DAC36F0-A67B-4961-9B2C-8163C605238B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DAC36F0-A67B-4961-9B2C-8163C605238B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DAC36F0-A67B-4961-9B2C-8163C605238B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -126,6 +134,7 @@ Global
 		{4A8632F8-7BD7-4A52-B4BD-67B5E727F267} = {C317D26A-EB80-4545-B939-B68E1D3DF14F}
 		{2B4C0FDA-EA8F-4A0D-9AC0-2F0A56DD988E} = {C317D26A-EB80-4545-B939-B68E1D3DF14F}
 		{43EF5FE9-7A3C-42E8-B093-9607E0D90E0F} = {7E6FD7D1-11AE-431B-ACFF-5CE570FA2144}
+		{0DAC36F0-A67B-4961-9B2C-8163C605238B} = {8190CC0B-6544-4F19-93F4-4ABF3A5EFE23}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E60D3C3C-4B8B-4025-B39F-79907620312C}
