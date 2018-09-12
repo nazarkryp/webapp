@@ -28,7 +28,12 @@ namespace WebApp.Infrastructure.Handlers
             }
         }
 
-        public async Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task<TSource>> action, int maxDegreeOfParallelism)
+        public Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task<TSource>> action, int maxDegreeOfParallelism)
+        {
+            return ForeachAsync(source, action, maxDegreeOfParallelism, null);
+        }
+
+        public async Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task<TSource>> action, int maxDegreeOfParallelism, Action degreeCompleted)
         {
             if (maxDegreeOfParallelism < 1)
             {
@@ -46,11 +51,21 @@ namespace WebApp.Infrastructure.Handlers
                     await Task.WhenAll(tasks);
 
                     tasks.Clear();
+
+                    if (degreeCompleted != null)
+                    {
+                        degreeCompleted();
+                    }
                 }
             }
         }
 
-        public async Task ForAsync(Func<int, Task> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism)
+        public Task ForAsync(Func<int, Task> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism)
+        {
+            return ForAsync(action, fromInclusive, toExclusive, maxDegreeOfParallelism, null);
+        }
+
+        public async Task ForAsync(Func<int, Task> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism, Action iterationCompleted)
         {
             var tasks = new List<Task>();
 
@@ -77,6 +92,7 @@ namespace WebApp.Infrastructure.Handlers
                     {
                         await Task.WhenAll(tasks);
                         tasks.Clear();
+                        iterationCompleted();
                     }
                 }
             }

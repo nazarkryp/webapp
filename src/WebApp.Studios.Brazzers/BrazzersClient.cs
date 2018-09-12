@@ -22,21 +22,6 @@ namespace WebApp.Studios.Brazzers
 
         public string StudioName => "Brazzers";
 
-        public Task<IPage> EnumeratePages(int? startPage = null)
-        {
-            if (startPage == null)
-            {
-                startPage = GetPagesCountAsync().Result;
-            }
-
-            for (var pageIndex = startPage.Value; pageIndex > 0; pageIndex--)
-            {
-                var page = GetPage(pageIndex);
-            }
-
-            return null;
-        }
-
         public IEnumerable<Task<IEnumerable<IMovie>>> GetPages(int? startPage = null)
         {
             if (startPage == null)
@@ -55,7 +40,7 @@ namespace WebApp.Studios.Brazzers
             }
         }
 
-        public IEnumerable<Task<IPage>> GetPagesTasks(int? startPage = null)
+        public IEnumerable<IPage> GetPagesTasks(int? startPage = null)
         {
             if (startPage == null)
             {
@@ -66,34 +51,20 @@ namespace WebApp.Studios.Brazzers
             {
                 var index = pageIndex;
 
-                yield return new Task<IPage>(() => new BrazzersPage
+                yield return new BrazzersPage
                 {
                     MoviesTask = GetPage(index),
                     PageIndex = index
-                });
+                };
             }
         }
 
-        //public IEnumerable<Tuple<int, IEnumerable<IMovie>>> EnumeratePages(int? startPage = null)
-        //{
-        //    if (startPage == null)
-        //    {
-        //        startPage = GetPagesCountAsync().Result;
-        //    }
-
-        //    for (var pageIndex = startPage.Value; pageIndex > 0; pageIndex--)
-        //    {
-        //        var page = GetPage(pageIndex);
-
-        //        yield return new Tuple<int, IEnumerable<IMovie>>(pageIndex, page);
-        //    }
-        //}
-
-        private static async Task<int> GetPagesCountAsync()
+        public async Task<int> GetPagesCountAsync()
         {
+            var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/1/";
+            //var encryptedUri = EncryptionHelper.Encrypt(uri);
+            //var requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
             var config = Configuration.Default.WithDefaultLoader().WithJavaScript();
-            var uri = EncryptionHelper.Encrypt($"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/1/");
-            var requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{uri}";
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
 
             var last = document.QuerySelector(".paginationui-nav.last").Children.FirstOrDefault(e => e.LocalName == "a");
@@ -105,10 +76,13 @@ namespace WebApp.Studios.Brazzers
 
         public async Task<IEnumerable<IMovie>> GetPage(int page)
         {
+            Console.WriteLine($"Getting page {page}");
+            var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/{page}/";
             var config = Configuration.Default.WithDefaultLoader().WithJavaScript();
-            var uri = EncryptionHelper.Encrypt($"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/{page}/");
-            var requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{uri}";
+            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            //var requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+            Console.WriteLine(requestUri);
             var items = document.All.Where(element => element.LocalName == "div" && element.ClassList.Contains("release-card-wrap"));
 
             var movies = items.Select(e => ParseElement(e));

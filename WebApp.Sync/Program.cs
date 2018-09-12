@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ using WebApp.Repositories.EntityFramework.Repositories;
 using WebApp.Repositories.Repositories;
 using WebApp.Studios;
 using WebApp.Studios.Brazzers;
+using WebApp.Sync.Providers;
 
 namespace WebApp.Sync
 {
@@ -26,39 +28,67 @@ namespace WebApp.Sync
         private static async Task RunAsync()
         {
             IConcurrentActionHandler concurrentActionHandler = new ConcurrentActionHandler();
-            BrazzersClient studioClient = new BrazzersClient();
+            IStudioClient studioClient = new BrazzersClient();
             IMovieRepository movieRepository = new MovieRepository(new WebAppDbContext(new DbContextOptions<WebAppDbContext>()), new MappingService());
             IStudioRepository studioRepository = new StudioRepository(new WebAppDbContext(new DbContextOptions<WebAppDbContext>()), new MappingService());
             ISyncDetailsRepository syncDetailsRepository = new SyncDetailsRepository(new WebAppDbContext(new DbContextOptions<WebAppDbContext>()), new MappingService());
 
+            var movieSync = new MovieSync(concurrentActionHandler, studioClient, syncDetailsRepository, studioRepository, movieRepository);
 
-            var studio = await studioRepository.FindAsync(studioClient.StudioName);
+            await movieSync.SyncAsync();
 
-            if (studio == null)
-            {
-                studio = new Studio
-                {
-                    Name = studioClient.StudioName
-                };
+            //var collection = studioClient.GetPagesTasks(startPage);
+            //var items = new List<SyncPage>();
+            //await concurrentActionHandler.ForeachAsync(collection, async page =>
+            //{
+            //    var movies = await page.MoviesTask;
+            //    var syncPage = new SyncPage
+            //    {
+            //        PageIndex = page.PageIndex,
+            //        Movies = movies
+            //    };
 
-                studio = await studioRepository.AddAsync(studio);
-            }
+            //    items.Add(syncPage);
 
-            var syncDetails = await syncDetailsRepository.FindByStudioAsync(studio.StudioId);
+            //    return null;
+            //}, 5, async () =>
+            //{
+            //    var pages = items.OrderBy(e => e.PageIndex);
+            //    var studioMovies = pages.SelectMany(e => e.Movies);
 
-            int? startPage = null;
-            if (syncDetails?.LastSyncPage > 1)
-            {
-                startPage = syncDetails.LastSyncPage - 1;
-            }
+            //    var movies = studioMovies.Select(e => new Movie
+            //    {
+            //        Title = e.Title,
+            //        Attachments = e.Attachments.Select(attachment => new Attachment
+            //        {
+            //            Uri = attachment.Uri
+            //        }),
+            //        Date = e.Date,
+            //        Duration = e.Duration,
+            //        Description = !string.IsNullOrEmpty(e.Description) && e.Description.Length > 1000 ? e.Description.Substring(0, 1000) : e.Description,
+            //        Uri = e.Uri,
+            //        Studio = studio
+            //    });
 
-            var items = new List<IMovie>();
+            //    await movieRepository.AddRangeAsync(movies);
 
-            var collection = studioClient.GetPagesTasks(startPage);
-            await concurrentActionHandler.ForAsync(async index =>
-            {
-                var movies = await studioClient.GetPage(index);
-            }, syncDetails.LastSyncPage, 0, 5);
+            //    syncDetails.LastSyncDate = DateTime.UtcNow;
+            //    syncDetails.LastSyncPage = pages.LastOrDefault().PageIndex;
+
+            //    await syncDetailsRepository.UpdateAsync(syncDetails);
+            //    Console.WriteLine($"Sync Details:\nStudio: {studio.Name}\nSyncPage: {syncDetails.LastSyncPage}\nSyncDate: {syncDetails.LastSyncDate}\n\n");
+
+            //    items.Clear();
+            //});
+
+            //await concurrentActionHandler.ForAsync(async index =>
+            //{
+            //    var movies = await studioClient.GetPage(index);
+            //    foreach (var movie in movies)
+            //    {
+            //        Console.WriteLine(movie.Title);
+            //    }
+            //}, syncDetails.LastSyncPage, 0, 5);
 
             //var studio = await studioRepository.FindAsync(studioClient.StudioName);
 
@@ -111,15 +141,15 @@ namespace WebApp.Sync
             //}
         }
 
-        private static async Task<SyncDetails> UpdateSyncDetailsAsync(ISyncDetailsRepository syncDetailsRepository, Studio studio, SyncDetails syncDetails, Tuple<int, System.Collections.Generic.IEnumerable<IMovie>> page)
+        private static async Task<SyncDetails> UpdateSyncDetailsAsync(ISyncDetailsRepository syncDetailsRepository, SyncDetails syncDetails, int studioId, int pageIndex)
         {
             if (syncDetails == null)
             {
                 syncDetails = new SyncDetails
                 {
                     LastSyncDate = DateTime.UtcNow,
-                    LastSyncPage = page.Item1,
-                    StudioId = studio.StudioId
+                    LastSyncPage = pageIndex,
+                    StudioId = studioId
                 };
 
                 await syncDetailsRepository.AddAsync(syncDetails);
@@ -127,12 +157,19 @@ namespace WebApp.Sync
             else
             {
                 syncDetails.LastSyncDate = DateTime.UtcNow;
-                syncDetails.LastSyncPage = page.Item1;
+                syncDetails.LastSyncPage = pageIndex;
 
                 await syncDetailsRepository.UpdateAsync(syncDetails);
             }
 
             return syncDetails;
         }
+    }
+
+    public class SyncPage
+    {
+        public int PageIndex { get; set; }
+
+        public IEnumerable<IMovie> Movies { get; set; }
     }
 }
