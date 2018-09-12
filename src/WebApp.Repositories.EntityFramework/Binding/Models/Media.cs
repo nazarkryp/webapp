@@ -1,6 +1,6 @@
 ﻿namespace WebApp.Repositories.EntityFramework.Binding.Models
 {
-    internal class Media
+    public class Media
     {
         public int MediaId { get; set; }
 

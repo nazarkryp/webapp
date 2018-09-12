@@ -12,9 +12,9 @@ namespace WebApp.Web.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly IGoogleSecurityProvider _securityProvider;
+        private readonly IAuthenticationProvider _securityProvider;
 
-        public AccountController(IGoogleSecurityProvider securityProvider)
+        public AccountController(IAuthenticationProvider securityProvider)
         {
             _securityProvider = securityProvider;
         }

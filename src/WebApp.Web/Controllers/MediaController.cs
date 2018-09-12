@@ -33,6 +33,7 @@ namespace WebApp.Web.Controllers
         [HttpGet]
         public async Task<IEnumerable<Media>> GetAllMediaAsync()
         {
+            var user = this.User;
             return await _mediaService.GetMediaAsync();
         }
 

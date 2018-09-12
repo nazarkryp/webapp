@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WebApp.Repositories.EntityFramework.Context
 {
-    internal interface IDbContext
+    public interface IDbContext
     {
         DbSet<TEntity> Set<TEntity>() where TEntity : class;
 

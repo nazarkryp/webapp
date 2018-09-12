@@ -62,5 +62,9 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\Media.sql" />
+    <Build Include="dbo\Tables\Movies.sql" />
+    <Build Include="dbo\Tables\Attachments.sql" />
+    <Build Include="dbo\Tables\Studio.sql" />
+    <Build Include="dbo\Tables\SyncDetails.sql" />
   </ItemGroup>
 </Project>

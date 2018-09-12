@@ -26,7 +26,14 @@ namespace WebApp.Mapping.AutoMapper.Mappers
                 configuration.Advanced.AllowAdditiveTypeMapCreation = true;
             });
 
-            Mapper.AssertConfigurationIsValid();
+            try
+            {
+                Mapper.AssertConfigurationIsValid();
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
         }
 
         public TDestination Map<TSource, TDestination>(TSource source)

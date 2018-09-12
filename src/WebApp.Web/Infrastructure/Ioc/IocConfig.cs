@@ -5,6 +5,7 @@ using WebApp.Mapping.AutoMapper;
 using WebApp.Repositories.EntityFramework;
 using WebApp.Security;
 using WebApp.Security.Configuration;
+using WebApp.Security.Google;
 using WebApp.Services;
 using WebApp.Storage.Cloudinary;
 using WebApp.Web.Infrastructure.Security;
@@ -22,8 +23,8 @@ namespace WebApp.Web.Infrastructure.Ioc
             services.ConfigureCloudinary();
             services.ConfigureServices();
 
-            services.AddSingleton<IGoogleConfiguration, GoogleConfiguration>();
-            services.AddTransient<IGoogleSecurityProvider, GoogleSecurityProvider>();
+            services.AddSingleton<IOAuthConfiguration, GoogleConfiguration>();
+            services.AddTransient<IAuthenticationProvider, GoogleAuthenticationProvider>();
 
             //var queueConnectionString = configuration.GetConnectionString("StorageConnectionString");
             //services.AddSingleton<IEventPublisher, EventPublisher>(_ => new EventPublisher(queueConnectionString));

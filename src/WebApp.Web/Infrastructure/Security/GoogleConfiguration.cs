@@ -2,7 +2,7 @@
 
 namespace WebApp.Web.Infrastructure.Security
 {
-    public class GoogleConfiguration : IGoogleConfiguration
+    public class GoogleConfiguration : IOAuthConfiguration
     {
         public string ClientId => "918518562893-19gsgkiuolsfuhmephemj5pt7co42sv0.apps.googleusercontent.com";
 

@@ -15,4 +15,8 @@
     <ProjectReference Include="..\WebApp.Repositories\WebApp.Repositories.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Binding\Mapping\NewFolder\" />
+  </ItemGroup>
+
 </Project>

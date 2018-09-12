@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WebApp.Security.Validators;
+using Microsoft.IdentityModel.Tokens;
+using WebApp.Security.Google.Validators;
 using WebApp.Web.Infrastructure.Ioc;
 
 namespace WebApp.Web
@@ -29,11 +30,11 @@ namespace WebApp.Web
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
                 })
-                .AddJwtBearer(o =>
+                .AddJwtBearer(options =>
                     {
-                        o.SecurityTokenValidators.Clear();
-                        o.Audience = "918518562893-19gsgkiuolsfuhmephemj5pt7co42sv0.apps.googleusercontent.com";
-                        o.SecurityTokenValidators.Add(new GoogleTokenValidator());
+                        options.SecurityTokenValidators.Clear();
+                        options.Audience = "918518562893-19gsgkiuolsfuhmephemj5pt7co42sv0.apps.googleusercontent.com";
+                        options.SecurityTokenValidators.Add(new GoogleTokenValidator("918518562893-19gsgkiuolsfuhmephemj5pt7co42sv0.apps.googleusercontent.com"));
                     }
                 );
 

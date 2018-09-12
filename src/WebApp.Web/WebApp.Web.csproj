@@ -25,11 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\WebApp.Security\WebApp.Security.csproj" />
     <ProjectReference Include="..\WebApp.Dto\WebApp.Dto.csproj" />
     <ProjectReference Include="..\WebApp.Mapping.AutoMapper\WebApp.Mapping.AutoMapper.csproj" />
     <ProjectReference Include="..\WebApp.Mapping\WebApp.Mapping.csproj" />
     <ProjectReference Include="..\WebApp.Repositories.EntityFramework\WebApp.Repositories.EntityFramework.csproj" />
+    <ProjectReference Include="..\WebApp.Security.Google\WebApp.Security.Google.csproj" />
+    <ProjectReference Include="..\WebApp.Security\WebApp.Security.csproj" />
     <ProjectReference Include="..\WebApp.Services\WebApp.Services.csproj" />
     <ProjectReference Include="..\WebApp.Storage.Cloudinary\WebApp.Storage.Cloudinary.csproj" />
     <ProjectReference Include="..\WebApp.Storage\WebApp.Storage.csproj" />
