@@ -14,6 +14,6 @@ namespace WebApp.Studios
 
         IEnumerable<Task<IEnumerable<IMovie>>> GetPages(int? startPage = null);
 
-        Task<IEnumerable<IMovie>> GetPage(int pageIndex);
+        Task<IEnumerable<IMovie>> GetPageAsync(int pageIndex);
     }
 }

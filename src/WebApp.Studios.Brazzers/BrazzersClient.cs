@@ -17,7 +17,7 @@ namespace WebApp.Studios.Brazzers
 
         public async Task<IEnumerable<IMovie>> GetMoviesAsync(int page)
         {
-            return await Task.Run(() => GetPage(page));
+            return await Task.Run(() => GetPageAsync(page));
         }
 
         public string StudioName => "Brazzers";
@@ -31,7 +31,7 @@ namespace WebApp.Studios.Brazzers
 
             for (var pageIndex = startPage.Value; pageIndex > 0; pageIndex--)
             {
-                yield return GetPage(pageIndex);
+                yield return GetPageAsync(pageIndex);
                 //yield return new Task<IPage>(() => new BrazzersPage
                 //{
                 //    Movies = movies,
@@ -53,7 +53,7 @@ namespace WebApp.Studios.Brazzers
 
                 yield return new BrazzersPage
                 {
-                    MoviesTask = GetPage(index),
+                    MoviesTask = GetPageAsync(index),
                     PageIndex = index
                 };
             }
@@ -62,8 +62,8 @@ namespace WebApp.Studios.Brazzers
         public async Task<int> GetPagesCountAsync()
         {
             var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/1/";
-            //var encryptedUri = EncryptionHelper.Encrypt(uri);
-            //var requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+            var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
             var config = Configuration.Default.WithDefaultLoader().WithJavaScript();
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
 
@@ -74,15 +74,13 @@ namespace WebApp.Studios.Brazzers
             return int.Parse(href.EndsWith("/") ? arr[arr.Length - 2] : arr[arr.Length - 1]);
         }
 
-        public async Task<IEnumerable<IMovie>> GetPage(int page)
+        public async Task<IEnumerable<IMovie>> GetPageAsync(int page)
         {
-            Console.WriteLine($"Getting page {page}");
             var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/{page}/";
             var config = Configuration.Default.WithDefaultLoader().WithJavaScript();
-            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            //var requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+            var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
-            Console.WriteLine(requestUri);
             var items = document.All.Where(element => element.LocalName == "div" && element.ClassList.Contains("release-card-wrap"));
 
             var movies = items.Select(e => ParseElement(e));
@@ -99,6 +97,7 @@ namespace WebApp.Studios.Brazzers
 
             movie.Title = link?.GetAttribute("title");
             movie.Uri = $"{BaseAddress}{link?.GetAttribute("href")}";
+            movie.Description = element.QuerySelector(".scene-postcard-description")?.TextContent?.Trim();
             movie.Attachments = link?.Children.Where(e => e.LocalName == "img").Select(e =>
             {
                 var value = e.GetAttribute("data-src");
@@ -125,6 +124,11 @@ namespace WebApp.Studios.Brazzers
             if (string.IsNullOrEmpty(movie.Title))
             {
                 movie = ParseLegacyElement(element);
+            }
+
+            if (string.IsNullOrEmpty(movie.Description))
+            {
+                var uri = movie.Uri;
             }
 
             return movie;
@@ -157,6 +161,7 @@ namespace WebApp.Studios.Brazzers
             movie.Description = element.QuerySelector(".scene-postcard-description")?.TextContent?.Trim();
 
             var date = element.QuerySelector(".scene-postcard-date").TextContent.Trim();
+
             if (DateTime.TryParse(date, out var dateTime))
             {
                 movie.Date = dateTime;

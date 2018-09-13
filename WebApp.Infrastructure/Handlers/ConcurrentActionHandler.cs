@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace WebApp.Infrastructure.Handlers
@@ -33,7 +35,7 @@ namespace WebApp.Infrastructure.Handlers
             return ForeachAsync(source, action, maxDegreeOfParallelism, null);
         }
 
-        public async Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task<TSource>> action, int maxDegreeOfParallelism, Action degreeCompleted)
+        public async Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task<TSource>> action, int maxDegreeOfParallelism, Func<Task> iterationCompleted)
         {
             if (maxDegreeOfParallelism < 1)
             {
@@ -52,9 +54,9 @@ namespace WebApp.Infrastructure.Handlers
 
                     tasks.Clear();
 
-                    if (degreeCompleted != null)
+                    if (iterationCompleted != null)
                     {
-                        degreeCompleted();
+                        await iterationCompleted();
                     }
                 }
             }
@@ -65,9 +67,9 @@ namespace WebApp.Infrastructure.Handlers
             return ForAsync(action, fromInclusive, toExclusive, maxDegreeOfParallelism, null);
         }
 
-        public async Task ForAsync(Func<int, Task> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism, Action iterationCompleted)
+        public async Task ForAsync(Func<int, Task> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism, Func<Task> iterationCompleted)
         {
-            var tasks = new List<Task>();
+            var tasks = new List<Task>(maxDegreeOfParallelism);
 
             if (fromInclusive < toExclusive)
             {
@@ -92,10 +94,32 @@ namespace WebApp.Infrastructure.Handlers
                     {
                         await Task.WhenAll(tasks);
                         tasks.Clear();
-                        iterationCompleted();
+
+                        if (iterationCompleted != null)
+                        {
+                            await iterationCompleted();
+                        }
                     }
                 }
             }
         }
+
+        //public Task ForEachAsync<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, Task<TResult>> body, int maxDegreeOfParallelism, Func<List<TResult>, Task> iterationCompleted)
+        //{
+        //    var partitions = Partitioner.Create(source)
+        //        .GetPartitions(maxDegreeOfParallelism)
+        //        .Select(partition => Task.Run(async delegate
+        //        {
+        //            using (partition)
+        //            {
+        //                while (partition.MoveNext())
+        //                {
+        //                    var result = await body(partition.Current);
+        //                }
+        //            }
+        //        }));
+
+        //    return Task.WhenAll(partitions);
+        //}
     }
 }

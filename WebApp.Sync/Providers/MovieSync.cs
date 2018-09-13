@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,16 +35,15 @@ namespace WebApp.Sync.Providers
 
         public async Task SyncAsync()
         {
-            var from = 10;
             var to = 0;
             var maxDegreeOfParallelism = 5;
             var studio = await GetStudioAsync();
             var syncDetails = await GetSyncDetailsAsync(studio);
+            var buffer = new ConcurrentBag<SyncObject<IMovie>>();
 
-            var buffer = new List<SyncObject<IMovie>>(maxDegreeOfParallelism);
             await _concurrentActionHandler.ForAsync(async pageIndex =>
             {
-                var movies = await _studioClient.GetPage(pageIndex);
+                var movies = await _studioClient.GetPageAsync(pageIndex);
 
                 var syncObject = new SyncObject<IMovie>
                 {
@@ -52,22 +52,27 @@ namespace WebApp.Sync.Providers
                 };
 
                 buffer.Add(syncObject);
-            }, from, to, maxDegreeOfParallelism, async () =>
+            }, syncDetails.LastSyncPage, to, maxDegreeOfParallelism, async () =>
             {
-                var pages = buffer.OrderBy(e => e.PageIndex);
-                var studioMovies = pages.SelectMany(e => e.Items);
+                var pages = buffer.OrderBy(e => e.PageIndex).ToList();
 
-                var movies = MapMovies(studioMovies, studio);
+                if (pages.Any())
+                {
+                    var first = pages.FirstOrDefault();
+                    syncDetails.LastSyncDate = DateTime.UtcNow;
+                    syncDetails.LastSyncPage = first.PageIndex;
 
-                await _movieRepository.AddRangeAsync(movies);
+                    var studioMovies = pages.SelectMany(e => e.Items);
 
-                syncDetails.LastSyncDate = DateTime.UtcNow;
-                syncDetails.LastSyncPage = pages.LastOrDefault().PageIndex;
+                    var movies = MapMovies(studioMovies, studio);
+                    await _movieRepository.AddRangeAsync(movies);
 
-                await _syncDetailsRepository.UpdateAsync(syncDetails);
-                Console.WriteLine($"Sync Details:\nStudio: {studio.Name}\nSyncPage: {syncDetails.LastSyncPage}\nSyncDate: {syncDetails.LastSyncDate}\n\n");
+                    await _syncDetailsRepository.UpdateAsync(syncDetails);
 
-                buffer.Clear();
+                    Console.WriteLine($"Sync Details:\nStudio: {studio.Name}\nSyncPage: {syncDetails.LastSyncPage}\nSyncDate: {syncDetails.LastSyncDate}\n\n");
+
+                    buffer.Clear();
+                }
             });
         }
 
@@ -75,10 +80,10 @@ namespace WebApp.Sync.Providers
         {
             var syncDetails = await _syncDetailsRepository.FindByStudioAsync(studio.StudioId);
 
-            var totalPages = await _studioClient.GetPagesCountAsync();
-
             if (syncDetails == null)
             {
+                var totalPages = await _studioClient.GetPagesCountAsync();
+
                 syncDetails = new SyncDetails
                 {
                     StudioId = studio.StudioId,
@@ -120,7 +125,7 @@ namespace WebApp.Sync.Providers
                 }),
                 Date = e.Date,
                 Duration = e.Duration,
-                Description = !string.IsNullOrEmpty(e.Description) && e.Description.Length > 1000 ? e.Description.Substring(0, 1000) : e.Description,
+                Description = !string.IsNullOrEmpty(e.Description) ? e.Description : null,
                 Uri = e.Uri,
                 Studio = studio
             });
