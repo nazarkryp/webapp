@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace WebApp.Studios
@@ -10,10 +9,6 @@ namespace WebApp.Studios
 
         Task<int> GetPagesCountAsync();
 
-        Task<IEnumerable<IMovie>> GetMoviesAsync(int page);
-
-        IEnumerable<Task<IEnumerable<IMovie>>> GetPages(int? startPage = null);
-
-        Task<IEnumerable<IMovie>> GetPageAsync(int pageIndex);
+        Task<IEnumerable<IMovie>> GetMoviesAsync(int pageIndex);
     }
 }

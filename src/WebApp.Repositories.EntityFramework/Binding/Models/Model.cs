@@ -2,12 +2,12 @@
 
 namespace WebApp.Repositories.EntityFramework.Binding.Models
 {
-    public class Studio
+    public class Model
     {
-        public int StudioId { get; set; }
+        public int ModelId { get; set; }
 
         public string Name { get; set; }
 
-        public ICollection<Movie> Movies { get; set; }
+        public ICollection<MovieModel> MovieModel { get; set; }
     }
 }

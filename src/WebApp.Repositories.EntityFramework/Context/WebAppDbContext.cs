@@ -22,12 +22,17 @@ namespace WebApp.Repositories.EntityFramework.Context
 
         public DbSet<SyncDetails> SyncDetails { get; set; }
 
+        public DbSet<MovieModel> MovieModels { get; set; }
+
+        public DbSet<Model> Models { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new AttachmentConfiguration());
             modelBuilder.ApplyConfiguration(new MediaConfiguration());
             modelBuilder.ApplyConfiguration(new StudioConfiguration());
             modelBuilder.ApplyConfiguration(new MovieConfiguration());
+            modelBuilder.ApplyConfiguration(new MovieModelsConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

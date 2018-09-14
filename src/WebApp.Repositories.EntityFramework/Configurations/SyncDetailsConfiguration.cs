@@ -7,11 +7,17 @@ namespace WebApp.Repositories.EntityFramework.Configurations
 {
     internal class SyncDetailsConfiguration : IEntityTypeConfiguration<SyncDetails>
     {
+        private const string TableName = "SyncDetails";
+
         public void Configure(EntityTypeBuilder<SyncDetails> builder)
         {
-            builder.ToTable("SyncDetails");
+            builder.ToTable(TableName);
 
             builder.HasKey(e => e.SyncDetailsId);
+
+            builder.HasOne(e => e.Studio)
+                .WithOne()
+                .HasForeignKey<Studio>(e => e.StudioId);
         }
     }
 }

@@ -16,5 +16,7 @@ namespace WebApp.Studios
         TimeSpan Duration { get; set; }
 
         IEnumerable<IAttachment> Attachments { get; set; }
+
+        IEnumerable<IModel> Models { get; set; }
     }
 }

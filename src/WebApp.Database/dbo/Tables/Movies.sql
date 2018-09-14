@@ -6,7 +6,8 @@
 	[Date]				DATETIME		NULL,
 	[Duration]			TIME(7)			NULL,
 	[StudioId]			INT				NOT NULL,
-	CONSTRAINT [FK_Movies_StudioId_Studios_StudioId] FOREIGN KEY ([StudioId]) REFERENCES [dbo].[Studios] ([StudioId])
+	CONSTRAINT [FK_Movies_StudioId_Studios_StudioId] FOREIGN KEY ([StudioId]) REFERENCES [dbo].[Studios] ([StudioId]),
+	CONSTRAINT [Movies_Uri] UNIQUE ([Uri])
 )
 
 GO

@@ -1,6 +1,6 @@
 ﻿using WebApp.Security.Configuration;
 
-namespace WebApp.Web.Infrastructure.Security
+namespace WebApp.Security.Google.Configuration
 {
     public class GoogleConfiguration : IOAuthConfiguration
     {

@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Microsoft.EntityFrameworkCore;
+
 using WebApp.Domain.Entities;
 using WebApp.Mapping;
 using WebApp.Repositories.EntityFramework.Context;
@@ -9,7 +11,7 @@ using WebApp.Repositories.Repositories;
 
 namespace WebApp.Repositories.EntityFramework.Repositories
 {
-    internal class MediaRepository : GenericRepository<Binding.Models.Media>, IMediaRepository
+    public class MediaRepository : GenericRepository<Binding.Models.Media>, IMediaRepository
     {
         private readonly IMapper _mapper;
 

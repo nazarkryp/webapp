@@ -36,25 +36,14 @@ namespace WebApp.Mapping.AutoMapper.Mappers
             }
         }
 
-        public TDestination Map<TSource, TDestination>(TSource source)
+        public TDestination Map<TDestination>(object source)
         {
-            var result = Mapper.Map<TSource, TDestination>(source);
-
-            return result;
+            return Mapper.Map<TDestination>(source);
         }
 
         public TDestination Map<TSource, TDestination>(TSource source, TDestination destination)
         {
-            var result = Mapper.Map(source, destination);
-
-            return result;
-        }
-
-        public TDestination Map<TDestination>(object source)
-        {
-            var result = Mapper.Map<TDestination>(source);
-
-            return result;
+            return Mapper.Map(source, destination);
         }
 
         public TDestination Map<TDestination>(Dictionary<string, object> properties) where TDestination : new()

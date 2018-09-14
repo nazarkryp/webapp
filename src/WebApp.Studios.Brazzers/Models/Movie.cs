@@ -15,6 +15,8 @@ namespace WebApp.Studios.Brazzers.Models
 
         public TimeSpan Duration { get; set; }
 
+        public IEnumerable<IModel> Models { get; set; }
+
         public IEnumerable<IAttachment> Attachments { get; set; }
     }
 }

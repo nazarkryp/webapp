@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WebApp.Dto\WebApp.Dto.csproj" />
+    <ProjectReference Include="..\WebApp.Ioc\WebApp.Ioc.csproj" />
     <ProjectReference Include="..\WebApp.Mapping.AutoMapper\WebApp.Mapping.AutoMapper.csproj" />
     <ProjectReference Include="..\WebApp.Mapping\WebApp.Mapping.csproj" />
     <ProjectReference Include="..\WebApp.Repositories.EntityFramework\WebApp.Repositories.EntityFramework.csproj" />

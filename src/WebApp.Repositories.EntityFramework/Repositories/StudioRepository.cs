@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+
 using WebApp.Domain.Entities;
 using WebApp.Mapping;
 using WebApp.Repositories.EntityFramework.Context;
@@ -23,21 +24,21 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<IEnumerable<Studio>> FindStudiosAsync()
         {
-            var entities = await FindAll(null, e => e.SyncDetails).ToListAsync();
+            var entities = await FindAll().ToListAsync();
 
             return _mapper.Map<IEnumerable<Studio>>(entities);
         }
 
         public async Task<Studio> FindAsync(int studioId)
         {
-            var entity = await FindAsync(e => e.StudioId == studioId, e => e.SyncDetails);
+            var entity = await FindAsync(e => e.StudioId == studioId);
 
             return _mapper.Map<Studio>(entity);
         }
 
         public async Task<Studio> FindAsync(string name)
         {
-            var entity = await FindAsync(e => string.Equals(e.Name, name, StringComparison.CurrentCultureIgnoreCase), e => e.SyncDetails);
+            var entity = await FindAsync(e => string.Equals(e.Name, name, StringComparison.CurrentCultureIgnoreCase));
 
             return _mapper.Map<Studio>(entity);
         }
@@ -55,7 +56,8 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<SyncDetails> UpdateAsync(SyncDetails syncDetails)
         {
-            var entity = await Context.Set<Binding.Models.SyncDetails>().FirstOrDefaultAsync(e => e.StudioId == syncDetails.StudioId);
+            var entity = await Context.Set<Binding.Models.SyncDetails>().FirstOrDefaultAsync(e => e.StudioId == syncDetails.Studio.StudioId);
+
             EntityEntry result;
 
             if (entity == null)

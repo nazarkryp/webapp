@@ -20,5 +20,7 @@ namespace WebApp.Domain.Entities
         public Studio Studio { get; set; }
 
         public IEnumerable<Attachment> Attachments { get; set; }
+
+        public IEnumerable<Model> Models { get; set; }
     }
 }

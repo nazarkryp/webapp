@@ -7,9 +7,12 @@ namespace WebApp.Repositories.EntityFramework.Configurations
 {
     internal class MediaConfiguration : IEntityTypeConfiguration<Media>
     {
+        private const string TableName = "Media";
+
         public void Configure(EntityTypeBuilder<Media> builder)
         {
-            builder.ToTable("Media");
+            builder.ToTable(TableName);
+
             builder.HasKey(e => e.MediaId);
         }
     }

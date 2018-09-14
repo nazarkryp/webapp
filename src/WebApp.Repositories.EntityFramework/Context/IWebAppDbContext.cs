@@ -15,5 +15,9 @@ namespace WebApp.Repositories.EntityFramework.Context
         DbSet<Studio> Studios { get; set; }
 
         DbSet<SyncDetails> SyncDetails { get; set; }
+
+        DbSet<MovieModel> MovieModels { get; set; }
+
+        DbSet<Model> Models { get; set; }
     }
 }

@@ -12,7 +12,10 @@ namespace WebApp.Repositories.EntityFramework.Binding.Mapping
 
             CreateMap<Binding.Models.Studio, Studio>();
 
-            CreateMap<SyncDetails, Binding.Models.SyncDetails>();
+            CreateMap<SyncDetails, Binding.Models.SyncDetails>()
+                .ForMember(e => e.Studio, opt => opt.Ignore())
+                .ForMember(e => e.StudioId, opt => opt.MapFrom(s => s.Studio.StudioId));
+
             CreateMap<Binding.Models.SyncDetails, SyncDetails>();
         }
     }

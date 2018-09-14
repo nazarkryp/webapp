@@ -18,7 +18,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<SyncDetails> FindByStudioAsync(int studioId)
         {
-            var entity = await FindAsync(e => e.StudioId == studioId);
+            var entity = await FindAsync(e => e.StudioId == studioId, e => e.Studio);
 
             return _mapper.Map<SyncDetails>(entity);
         }

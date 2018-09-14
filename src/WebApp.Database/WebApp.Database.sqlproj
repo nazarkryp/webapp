@@ -66,5 +66,7 @@
     <Build Include="dbo\Tables\Attachments.sql" />
     <Build Include="dbo\Tables\Studio.sql" />
     <Build Include="dbo\Tables\SyncDetails.sql" />
+    <Build Include="dbo\Tables\Models.sql" />
+    <Build Include="dbo\Tables\MovieModels.sql" />
   </ItemGroup>
 </Project>

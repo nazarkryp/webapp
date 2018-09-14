@@ -6,8 +6,6 @@ namespace WebApp.Domain.Entities
     {
         public int SyncDetailsId { get; set; }
 
-        public int StudioId { get; set; }
-
         public Studio Studio { get; set; }
 
         public DateTime LastSyncDate { get; set; }

@@ -8,7 +8,7 @@ using WebApp.Repositories.Repositories;
 
 namespace WebApp.Services
 {
-    internal class MediaService : IMediaService
+    public class MediaService : IMediaService
     {
         private readonly IMediaRepository _media;
         private readonly IMapper _mapper;

@@ -1,8 +1,8 @@
 ﻿namespace WebApp.Domain.Entities
 {
-    public class Studio
+    public class Model
     {
-        public int StudioId { get; set; }
+        public int ModelId { get; set; }
 
         public string Name { get; set; }
     }

@@ -22,5 +22,7 @@ namespace WebApp.Repositories.EntityFramework.Binding.Models
         public Studio Studio { get; set; }
 
         public ICollection<Attachment> Attachments { get; set; }
+
+        public ICollection<MovieModel> MovieModels { get; set; }
     }
 }

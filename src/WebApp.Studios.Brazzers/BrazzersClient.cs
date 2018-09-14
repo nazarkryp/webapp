@@ -15,49 +15,7 @@ namespace WebApp.Studios.Brazzers
     {
         private const string BaseAddress = "https://tour.brazzersnetwork.com";
 
-        public async Task<IEnumerable<IMovie>> GetMoviesAsync(int page)
-        {
-            return await Task.Run(() => GetPageAsync(page));
-        }
-
         public string StudioName => "Brazzers";
-
-        public IEnumerable<Task<IEnumerable<IMovie>>> GetPages(int? startPage = null)
-        {
-            if (startPage == null)
-            {
-                startPage = GetPagesCountAsync().Result;
-            }
-
-            for (var pageIndex = startPage.Value; pageIndex > 0; pageIndex--)
-            {
-                yield return GetPageAsync(pageIndex);
-                //yield return new Task<IPage>(() => new BrazzersPage
-                //{
-                //    Movies = movies,
-                //    PageIndex = index
-                //});
-            }
-        }
-
-        public IEnumerable<IPage> GetPagesTasks(int? startPage = null)
-        {
-            if (startPage == null)
-            {
-                startPage = GetPagesCountAsync().Result;
-            }
-
-            for (var pageIndex = startPage.Value; pageIndex > 0; pageIndex--)
-            {
-                var index = pageIndex;
-
-                yield return new BrazzersPage
-                {
-                    MoviesTask = GetPageAsync(index),
-                    PageIndex = index
-                };
-            }
-        }
 
         public async Task<int> GetPagesCountAsync()
         {
@@ -74,7 +32,7 @@ namespace WebApp.Studios.Brazzers
             return int.Parse(href.EndsWith("/") ? arr[arr.Length - 2] : arr[arr.Length - 1]);
         }
 
-        public async Task<IEnumerable<IMovie>> GetPageAsync(int page)
+        public async Task<IEnumerable<IMovie>> GetMoviesAsync(int page)
         {
             var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/{page}/";
             var config = Configuration.Default.WithDefaultLoader().WithJavaScript();
@@ -98,6 +56,14 @@ namespace WebApp.Studios.Brazzers
             movie.Title = link?.GetAttribute("title");
             movie.Uri = $"{BaseAddress}{link?.GetAttribute("href")}";
             movie.Description = element.QuerySelector(".scene-postcard-description")?.TextContent?.Trim();
+
+            var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
+
+            movie.Models = models?.Select(e => new Model
+            {
+                Name = e
+            });
+
             movie.Attachments = link?.Children.Where(e => e.LocalName == "img").Select(e =>
             {
                 var value = e.GetAttribute("data-src");
@@ -144,6 +110,13 @@ namespace WebApp.Studios.Brazzers
 
             movie.Title = a?.GetAttribute("title");
             movie.Uri = $"{BaseAddress}{a?.GetAttribute("href")}";
+
+            var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
+
+            movie.Models = models?.Select(e => new Model
+            {
+                Name = e
+            });
 
             var imgSrc = a?.QuerySelector("img")?.GetAttribute("data-src");
 

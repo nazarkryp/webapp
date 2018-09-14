@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebApp.Infrastructure\WebApp.Infrastructure.csproj" />
+    <ProjectReference Include="..\WebApp.Mapping.AutoMapper\WebApp.Mapping.AutoMapper.csproj" />
+    <ProjectReference Include="..\WebApp.Mapping\WebApp.Mapping.csproj" />
+    <ProjectReference Include="..\WebApp.Repositories.EntityFramework\WebApp.Repositories.EntityFramework.csproj" />
+    <ProjectReference Include="..\WebApp.Repositories\WebApp.Repositories.csproj" />
+    <ProjectReference Include="..\WebApp.Security.Google\WebApp.Security.Google.csproj" />
+    <ProjectReference Include="..\WebApp.Security\WebApp.Security.csproj" />
+    <ProjectReference Include="..\WebApp.Services\WebApp.Services.csproj" />
+    <ProjectReference Include="..\WebApp.Storage.Cloudinary\WebApp.Storage.Cloudinary.csproj" />
+    <ProjectReference Include="..\WebApp.Storage\WebApp.Storage.csproj" />
+    <ProjectReference Include="..\WebApp.Studios.Brazzers\WebApp.Studios.Brazzers.csproj" />
+    <ProjectReference Include="..\WebApp.Studios\WebApp.Studios.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+      <HintPath>..\..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.dependencyinjection.abstractions\2.1.1\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
