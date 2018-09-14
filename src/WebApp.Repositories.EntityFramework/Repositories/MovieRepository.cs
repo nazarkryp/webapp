@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.EntityFrameworkCore;
+
 using WebApp.Domain.Entities;
 using WebApp.Mapping;
+using WebApp.Repositories.Common;
 using WebApp.Repositories.EntityFramework.Context;
 using WebApp.Repositories.Repositories;
 
@@ -20,11 +23,23 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<Movie>> FindMoviesAsync()
+        public async Task<Page<Movie>> GetPageAsync(IPagingFilter pagingFilter)
         {
-            var entities = await FindAll().ToListAsync();
+            var query = Context.Set<Binding.Models.Movie>()
+                .Include(e => e.Studio)
+                .Include(e => e.Attachments)
+                .Include(e => e.MovieModels)
+                .ThenInclude(e => e.Model);
 
-            return _mapper.Map<IEnumerable<Movie>>(entities);
+            var page = await GetPageAsync(query, pagingFilter.OrderBy, pagingFilter.Page, pagingFilter.Size);
+
+            return new Page<Movie>()
+            {
+                Size = page.Size,
+                Data = _mapper.Map<IEnumerable<Movie>>(page.Data),
+                Offset = page.Offset,
+                Total = page.Total
+            };
         }
 
         public async Task<Movie> AddAsync(Movie movie)
@@ -43,17 +58,27 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             var entities = _mapper.Map<IEnumerable<Binding.Models.Movie>>(movies);
 
             // Context.Set<Binding.Models.Model>().Where(e => e.Name.ToLower() == entities.All(m => m.mo))
-            var models = entities.SelectMany(e => e.MovieModels).Select(e => e.Model);
-            var existingModels = await Context.Set<Binding.Models.Model>().Where(e => models.Any(m => string.Equals(m.Name, e.Name, StringComparison.CurrentCultureIgnoreCase))).ToListAsync();
+            var names = entities.SelectMany(e => e.MovieModels).Select(e => e.Model.Name).Distinct();
 
-            foreach (var existingModel in existingModels)
+            var existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
+            var modelsToSave = names.Where(e => existingModels.All(em => !string.Equals(em.Name, e, StringComparison.CurrentCultureIgnoreCase))).Select(name => new Binding.Models.Model { Name = name });
+
+            if (modelsToSave.Any())
             {
-                var model = models.FirstOrDefault(e => e.Name.ToLower() == existingModel.Name.ToLower());
-                model.ModelId = existingModel.ModelId;
+                await Context.Set<Binding.Models.Model>().AddRangeAsync(modelsToSave);
+                await SaveChangesAsync();
             }
+
+            existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
 
             foreach (var entity in entities)
             {
+                foreach (var entityMovieModel in entity.MovieModels)
+                {
+                    entityMovieModel.ModelId = existingModels.First(e => e.Name == entityMovieModel.Model.Name).ModelId;
+                    entityMovieModel.Model.Name = null;
+                }
+
                 Add(entity);
             }
 

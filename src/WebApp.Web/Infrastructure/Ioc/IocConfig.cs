@@ -16,6 +16,7 @@ namespace WebApp.Web.Infrastructure.Ioc
             services.ConfigureCloudinary();
             services.ConfigureServices();
             services.ConfigureSecurity();
+            services.ConfigureInfrastructure();
             //var queueConnectionString = configuration.GetConnectionString("StorageConnectionString");
             //services.AddSingleton<IEventPublisher, EventPublisher>(_ => new EventPublisher(queueConnectionString));
         }

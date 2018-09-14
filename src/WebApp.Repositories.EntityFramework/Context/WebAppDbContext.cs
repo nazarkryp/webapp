@@ -33,6 +33,7 @@ namespace WebApp.Repositories.EntityFramework.Context
             modelBuilder.ApplyConfiguration(new StudioConfiguration());
             modelBuilder.ApplyConfiguration(new MovieConfiguration());
             modelBuilder.ApplyConfiguration(new MovieModelsConfiguration());
+            modelBuilder.ApplyConfiguration(new ModelConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

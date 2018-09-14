@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-
+using WebApp.Infrastructure.Cache;
 using WebApp.Infrastructure.Handlers;
+using WebApp.Infrastructure.Parsers;
 using WebApp.Mapping;
 using WebApp.Mapping.AutoMapper.Mappers;
 using WebApp.Repositories.EntityFramework.Context;
@@ -12,6 +13,7 @@ using WebApp.Security.Configuration;
 using WebApp.Security.Google;
 using WebApp.Security.Google.Configuration;
 using WebApp.Services;
+using WebApp.Services.Movies;
 using WebApp.Storage;
 using WebApp.Storage.Cloudinary;
 using WebApp.Storage.Cloudinary.Configuration;
@@ -25,6 +27,8 @@ namespace WebApp.Ioc
         public static void ConfigureInfrastructure(this IServiceCollection services)
         {
             services.AddTransient<IConcurrentActionHandler, ConcurrentActionHandler>();
+            services.AddTransient<ICacheStore, MemoryCacheStore>();
+            services.AddTransient<IOrderByFilterParser, OrderByFilterParser>();
         }
 
         public static void ConfigureRepositories(this IServiceCollection services)
@@ -40,6 +44,7 @@ namespace WebApp.Ioc
         public static void ConfigureServices(this IServiceCollection services)
         {
             services.AddTransient<IMediaService, MediaService>();
+            services.AddTransient<IMovieService, MovieService>();
         }
 
         public static void ConfigureCloudinary(this IServiceCollection services)

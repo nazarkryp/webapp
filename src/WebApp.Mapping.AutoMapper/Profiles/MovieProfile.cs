@@ -13,6 +13,8 @@ namespace WebApp.Mapping.AutoMapper.Profiles
                 .ForMember(e => e.Models, opt => opt.MapFrom(e => e.Models))
                 .ForMember(e => e.MovieId, opt => opt.Ignore())
                 .ForMember(e => e.Studio, opt => opt.Ignore());
+
+            CreateMap<Movie, Dto.Movies.Movie>();
         }
     }
 }

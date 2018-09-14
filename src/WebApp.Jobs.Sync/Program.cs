@@ -28,6 +28,7 @@ namespace WebApp.Jobs.Sync
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                Console.ReadKey();
             }
         }
     }

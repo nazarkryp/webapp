@@ -11,6 +11,8 @@ namespace WebApp.Mapping.AutoMapper.Profiles
         {
             CreateMap<IModel, Model>()
                 .ForMember(e => e.ModelId, opt => opt.Ignore());
+
+            CreateMap<Model, Dto.Models.Model>();
         }
     }
 }

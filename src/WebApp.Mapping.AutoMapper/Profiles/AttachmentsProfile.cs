@@ -11,6 +11,8 @@ namespace WebApp.Mapping.AutoMapper.Profiles
         {
             CreateMap<IAttachment, Attachment>()
                 .ForMember(e => e.AttachmentId, opt => opt.Ignore());
+
+            CreateMap<Attachment, Dto.Attachments.Attachment>();
         }
     }
 }

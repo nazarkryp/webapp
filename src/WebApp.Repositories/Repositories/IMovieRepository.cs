@@ -2,12 +2,13 @@
 using System.Threading.Tasks;
 
 using WebApp.Domain.Entities;
+using WebApp.Repositories.Common;
 
 namespace WebApp.Repositories.Repositories
 {
     public interface IMovieRepository
     {
-        Task<IEnumerable<Movie>> FindMoviesAsync();
+        Task<Page<Movie>> GetPageAsync(IPagingFilter pagingFilter);
 
         Task<Movie> AddAsync(Movie movie);
 
