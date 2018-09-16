@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebApp.Infrastructure.Handlers
@@ -67,20 +68,31 @@ namespace WebApp.Infrastructure.Handlers
             return ForAsync(action, fromInclusive, toExclusive, maxDegreeOfParallelism, null);
         }
 
-        public async Task ForAsync(Func<int, Task> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism, Func<Task> iterationCompleted)
+        public async Task ForAsync(Func<int, Task> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism, Func<Task> iterationCompleted, CancellationToken? token = null)
         {
+            var start = fromInclusive;
             var tasks = new List<Task>(maxDegreeOfParallelism);
 
             if (fromInclusive < toExclusive)
             {
                 for (; fromInclusive < toExclusive; fromInclusive++)
                 {
+                    if (token != null && token.Value.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     tasks.Add(action(fromInclusive));
 
-                    if (tasks.Count == maxDegreeOfParallelism)
+                    if (tasks.Count == maxDegreeOfParallelism || tasks.Count == Math.Abs(start - toExclusive))
                     {
                         await Task.WhenAll(tasks);
                         tasks.Clear();
+
+                        if (iterationCompleted != null)
+                        {
+                            await iterationCompleted();
+                        }
                     }
                 }
             }
@@ -88,9 +100,14 @@ namespace WebApp.Infrastructure.Handlers
             {
                 for (; fromInclusive > toExclusive; fromInclusive--)
                 {
+                    if (token != null && token.Value.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     tasks.Add(action(fromInclusive));
 
-                    if (tasks.Count == maxDegreeOfParallelism)
+                    if (tasks.Count == maxDegreeOfParallelism || tasks.Count == Math.Abs(start - toExclusive))
                     {
                         await Task.WhenAll(tasks);
                         tasks.Clear();

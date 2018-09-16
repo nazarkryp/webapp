@@ -23,6 +23,13 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             _mapper = mapper;
         }
 
+        public async Task<Movie> LastAsync()
+        {
+            var movie = await Context.Set<Binding.Models.Movie>().LastOrDefaultAsync();
+
+            return _mapper.Map<Movie>(movie);
+        }
+
         public async Task<Page<Movie>> GetPageAsync(IPagingFilter pagingFilter)
         {
             var query = Context.Set<Binding.Models.Movie>()
@@ -56,7 +63,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
         public async Task<IEnumerable<Movie>> AddRangeAsync(IEnumerable<Movie> movies)
         {
             var entities = _mapper.Map<IEnumerable<Binding.Models.Movie>>(movies);
-
+            
             // Context.Set<Binding.Models.Model>().Where(e => e.Name.ToLower() == entities.All(m => m.mo))
             var names = entities.SelectMany(e => e.MovieModels).Select(e => e.Model.Name).Distinct();
 

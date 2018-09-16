@@ -3,8 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
-
+using Microsoft.EntityFrameworkCore.Internal;
 using WebApp.Domain.Entities;
 using WebApp.Infrastructure.Handlers;
 using WebApp.Jobs.Sync.Configuration;
@@ -61,71 +62,21 @@ namespace WebApp.Jobs.Sync.Jobs
                 startFrom = syncDetails.LastSyncPage - 1;
             }
 
-            var buffer = new ConcurrentDictionary<int, IEnumerable<IMovie>>();
-
-            await _concurrentActionHandler.ForAsync(async pageIndex =>
+            if (startFrom < to)
             {
-                var movies = await studioClient.GetMoviesAsync(pageIndex);
-                buffer.TryAdd(pageIndex, movies);
-            }, startFrom, to, _syncConfiguration.MaxDegreeOfParallelism, () => SaveMoviesAsync(buffer, syncDetails, studio.StudioId));
-        }
-
-        private async Task SaveMoviesAsync(ConcurrentDictionary<int, IEnumerable<IMovie>> buffer, SyncDetails syncDetails, int studioId)
-        {
-            var pages = buffer.OrderBy(e => e.Key).ToList();
-
-            if (pages.Any())
-            {
-                var first = pages.FirstOrDefault();
-
-                if (syncDetails == null)
-                {
-                    syncDetails = new SyncDetails
-                    {
-                        Studio = new Studio
-                        {
-                            StudioId = studioId
-                        }
-                    };
-                }
-
-                syncDetails.LastSyncDate = DateTime.UtcNow;
-                syncDetails.LastSyncPage = first.Key;
-
-                var studioMovies = pages.SelectMany(e => e.Value);
-
-                var movies = MapMovies(studioMovies, studioId);
-
-                await _movieRepository.AddRangeAsync(movies);
-
-                if (syncDetails.SyncDetailsId == 0)
-                {
-                    await _syncDetailsRepository.AddAsync(syncDetails);
-                }
-                else
-                {
-                    await _syncDetailsRepository.UpdateAsync(syncDetails);
-                }
-
-
-                Console.WriteLine($"Sync Success ({buffer.Count} pages):\n\nSyncPage: {syncDetails.LastSyncPage}\n\n");
-
-                buffer.Clear();
+                await AppendAsync(studioClient, studio.StudioId);
             }
-        }
-
-        private async Task<SyncDetails> CreateSyncDetailsAsync(IStudioClient studioClient, Studio studio)
-        {
-            var totalPages = await studioClient.GetPagesCountAsync();
-
-            var syncDetails = new SyncDetails
+            else
             {
-                Studio = studio,
-                LastSyncDate = DateTime.Now,
-                LastSyncPage = totalPages
-            };
+                var buffer = new ConcurrentDictionary<int, IEnumerable<IMovie>>();
 
-            return await _syncDetailsRepository.AddAsync(syncDetails);
+                await _concurrentActionHandler.ForAsync(async pageIndex =>
+                    {
+                        var movies = await studioClient.GetMoviesAsync(pageIndex);
+                        buffer.TryAdd(pageIndex, movies);
+                    }, startFrom, to, _syncConfiguration.MaxDegreeOfParallelism,
+                    async () => { syncDetails = await SaveMoviesAsync(buffer, syncDetails, studio.StudioId); });
+            }
         }
 
         private async Task<Studio> GetStudioAsync(IStudioClient studioClient)
@@ -147,7 +98,7 @@ namespace WebApp.Jobs.Sync.Jobs
 
         private IEnumerable<Movie> MapMovies(IEnumerable<IMovie> studioMovies, int studioId)
         {
-            var movies = _mapper.Map<IList<Movie>>(studioMovies);
+            var movies = _mapper.Map<IEnumerable<Movie>>(studioMovies).ToList();
 
             foreach (var movie in movies)
             {
@@ -160,9 +111,93 @@ namespace WebApp.Jobs.Sync.Jobs
             return movies;
         }
 
-        private async Task AppendAsync()
+        private async Task<SyncDetails> SaveMoviesAsync(ConcurrentDictionary<int, IEnumerable<IMovie>> buffer, SyncDetails syncDetails, int studioId)
         {
+            var pages = buffer.OrderByDescending(e => e.Key).ToList();
 
+            if (pages.Any())
+            {
+                var first = pages.LastOrDefault();
+
+                if (syncDetails == null)
+                {
+                    syncDetails = new SyncDetails
+                    {
+                        Studio = new Studio
+                        {
+                            StudioId = studioId
+                        }
+                    };
+                }
+
+                syncDetails.LastSyncDate = DateTime.UtcNow;
+                syncDetails.LastSyncPage = first.Key;
+
+                var studioMovies = pages.SelectMany(e => e.Value.Reverse());
+
+                var movies = MapMovies(studioMovies, studioId);
+
+                await _movieRepository.AddRangeAsync(movies);
+
+                if (syncDetails.SyncDetailsId == 0)
+                {
+                    var saved = await _syncDetailsRepository.AddAsync(syncDetails);
+                    syncDetails.SyncDetailsId = saved.SyncDetailsId;
+                }
+                else
+                {
+                    await _syncDetailsRepository.UpdateAsync(syncDetails);
+                }
+
+                Console.WriteLine($"Sync Success ({buffer.Count} pages):\n\nSyncPage: {syncDetails.LastSyncPage}\n\n");
+
+                buffer.Clear();
+            }
+
+            return syncDetails;
+        }
+
+        private async Task AppendAsync(IStudioClient studioClient, int studioId)
+        {
+            var movie = await _movieRepository.LastAsync();
+
+            var buffer = new ConcurrentDictionary<int, IEnumerable<IMovie>>();
+            var cts = new CancellationTokenSource();
+
+            await _concurrentActionHandler.ForAsync(async pageIndex =>
+            {
+                var movies = await studioClient.GetMoviesAsync(pageIndex);
+                buffer.TryAdd(pageIndex, movies);
+            }, 1, 100, _syncConfiguration.MaxDegreeOfParallelism, async () =>
+            {
+                var pages = buffer.OrderBy(e => e.Key).ToList();
+
+                if (pages.Any())
+                {
+                    var studioMovies = pages.SelectMany(e => e.Value).ToList();
+
+                    var match = studioMovies.FirstOrDefault(e => string.Equals(e.Uri, movie.Uri, StringComparison.CurrentCultureIgnoreCase));
+
+                    if (match != null)
+                    {
+                        var index = studioMovies.IndexOf(match);
+                        studioMovies = studioMovies.Take(index).ToList();
+                    }
+
+                    var movies = MapMovies(studioMovies, studioId);
+
+                    await _movieRepository.AddRangeAsync(movies);
+
+                    Console.WriteLine($"Append success ({buffer.Count} pages);\n\n");
+
+                    buffer.Clear();
+
+                    if (match != null)
+                    {
+                        cts.Cancel();
+                    }
+                }
+            }, cts.Token);
         }
     }
 }

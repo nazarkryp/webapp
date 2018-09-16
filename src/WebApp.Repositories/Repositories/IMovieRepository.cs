@@ -8,6 +8,8 @@ namespace WebApp.Repositories.Repositories
 {
     public interface IMovieRepository
     {
+        Task<Movie> LastAsync();
+
         Task<Page<Movie>> GetPageAsync(IPagingFilter pagingFilter);
 
         Task<Movie> AddAsync(Movie movie);
