@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,11 +22,12 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             _mapper = mapper;
         }
 
-        public async Task<Movie> LastAsync()
+        public async Task<IEnumerable<Movie>> LatestAsync(int studioId)
         {
-            var movie = await Context.Set<Binding.Models.Movie>().LastOrDefaultAsync();
+            var max = await Context.Set<Binding.Models.Movie>().Where(e => e.StudioId == studioId).MaxAsync(e => e.Date);
+            var movies = await Context.Set<Binding.Models.Movie>().Where(e => e.StudioId == studioId && e.Date == max).ToListAsync();
 
-            return _mapper.Map<Movie>(movie);
+            return _mapper.Map<IEnumerable<Movie>>(movies);
         }
 
         public async Task<Page<Movie>> GetPageAsync(IPagingFilter pagingFilter)
@@ -40,7 +40,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
             var page = await GetPageAsync(query, pagingFilter.OrderBy, pagingFilter.Page, pagingFilter.Size);
 
-            return new Page<Movie>()
+            return new Page<Movie>
             {
                 Size = page.Size,
                 Data = _mapper.Map<IEnumerable<Movie>>(page.Data),
@@ -62,36 +62,48 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<IEnumerable<Movie>> AddRangeAsync(IEnumerable<Movie> movies)
         {
-            var entities = _mapper.Map<IEnumerable<Binding.Models.Movie>>(movies);
-            
-            // Context.Set<Binding.Models.Model>().Where(e => e.Name.ToLower() == entities.All(m => m.mo))
-            var names = entities.SelectMany(e => e.MovieModels).Select(e => e.Model.Name).Distinct();
+            var modelsNames = movies.SelectMany(e => e.Models).Select(e => e.Name).Distinct();
 
             var existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
-            var modelsToSave = names.Where(e => existingModels.All(em => !string.Equals(em.Name, e, StringComparison.CurrentCultureIgnoreCase))).Select(name => new Binding.Models.Model { Name = name });
+            var models = existingModels;
+
+            // var modelsToSave = modelsNames.Where(e => models.All(em => !string.Equals(em.Name, e, StringComparison.CurrentCultureIgnoreCase))).Select(name => new Binding.Models.Model { Name = name }).ToList();
+
+            var modelsToSave = modelsNames.Where(s => models.All(m => s.Split().All(e => m.Name.Split().Any(n => n == e)))).Select(name => new Binding.Models.Model { Name = name }).ToList();
 
             if (modelsToSave.Any())
             {
                 await Context.Set<Binding.Models.Model>().AddRangeAsync(modelsToSave);
                 await SaveChangesAsync();
+
+                existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
             }
 
-            existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
+            var entities = _mapper.Map<IList<Binding.Models.Movie>>(movies);
 
-            foreach (var entity in entities)
-            {
-                foreach (var entityMovieModel in entity.MovieModels)
-                {
-                    entityMovieModel.ModelId = existingModels.First(e => e.Name == entityMovieModel.Model.Name).ModelId;
-                    entityMovieModel.Model.Name = null;
-                }
+            MapReferences(existingModels, entities);
 
-                Add(entity);
-            }
+            await Context.Set<Binding.Models.Movie>().AddRangeAsync(entities);
 
             await SaveChangesAsync();
 
             return _mapper.Map<IEnumerable<Movie>>(entities);
+        }
+
+        private static void MapReferences(IReadOnlyCollection<Binding.Models.Model> existingModels, IEnumerable<Binding.Models.Movie> entities)
+        {
+            var movieModels = entities.SelectMany(e => e.MovieModels);
+
+            foreach (var entityMovieModel in movieModels)
+            {
+                var model = existingModels.FirstOrDefault(existing => existing.Name.Split().All(e => entityMovieModel.Model.Name.Split().Any(n => n == e))); ;
+
+                if (model != null)
+                {
+                    entityMovieModel.ModelId = model.ModelId;
+                    entityMovieModel.Model.Name = null;
+                }
+            }
         }
     }
 }

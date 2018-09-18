@@ -20,9 +20,10 @@ namespace WebApp.Studios.Brazzers
         public async Task<int> GetPagesCountAsync()
         {
             var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/1/";
-            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
-            var config = Configuration.Default.WithDefaultLoader().WithJavaScript();
+            var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+
+            var config = Configuration.Default.WithDefaultLoader();
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
 
             var last = document.QuerySelector(".paginationui-nav.last").Children.FirstOrDefault(e => e.LocalName == "a");
@@ -35,12 +36,13 @@ namespace WebApp.Studios.Brazzers
         public async Task<IEnumerable<IMovie>> GetMoviesAsync(int page)
         {
             var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/{page}/";
-            var config = Configuration.Default.WithDefaultLoader().WithJavaScript();
-            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
-            Console.WriteLine(page);
+            var config = Configuration.Default.WithDefaultLoader();
+            var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+
+            Console.WriteLine($"Getting: {requestUri}");
+
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
-            Console.WriteLine($"{page} - OK");
             var items = document.All.Where(element => element.LocalName == "div" && element.ClassList.Contains("release-card-wrap"));
 
             var movies = items.Select(e => ParseElement(e));

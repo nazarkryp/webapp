@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="0.9.10" />
-    <PackageReference Include="AngleSharp.Scripting.JavaScript" Version="0.5.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -18,12 +20,10 @@ namespace WebApp.Jobs.Sync
                 var serviceProvider = IocConfig.ConfigureIoc();
 
                 var job = serviceProvider.GetService<IJob>();
+
                 var studioClients = serviceProvider.GetServices<IStudioClient>();
 
-                foreach (var studioClient in studioClients)
-                {
-                    await job.SyncAsync(studioClient);
-                }
+                await Task.WhenAll(studioClients.Select(job.SyncAsync));
             }
             catch (Exception e)
             {
