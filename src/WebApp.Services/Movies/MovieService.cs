@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using WebApp.Dto.Common;
 using WebApp.Dto.Movies;
 using WebApp.Infrastructure.Parsers;
 using WebApp.Mapping;
@@ -23,9 +22,9 @@ namespace WebApp.Services.Movies
             _orderByFilterParser = orderByFilterParser;
         }
 
-        public async Task<Dto.Common.Page<Movie>> GetMoviesAsync(QueryFilter queryFilter)
+        public async Task<Dto.Common.Page<Movie>> GetMoviesAsync(MoviesQueryFilter queryFilter)
         {
-            var orderByFilters = _orderByFilterParser.Parse<Movie>(queryFilter?.Orderby) ?? new[] { nameof(Movie.MovieId) };
+            var orderByFilters = _orderByFilterParser.Parse<Movie>(queryFilter?.Orderby) ?? new[] { nameof(Movie.Date) };
 
             var pagingFilter = new PagingFilter
             {

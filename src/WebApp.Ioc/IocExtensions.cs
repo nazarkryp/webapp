@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
 using WebApp.Infrastructure.Cache;
 using WebApp.Infrastructure.Handlers;
 using WebApp.Infrastructure.Parsers;
@@ -14,6 +15,7 @@ using WebApp.Security.Google;
 using WebApp.Security.Google.Configuration;
 using WebApp.Services;
 using WebApp.Services.Movies;
+using WebApp.Services.Studios;
 using WebApp.Storage;
 using WebApp.Storage.Cloudinary;
 using WebApp.Storage.Cloudinary.Configuration;
@@ -45,6 +47,7 @@ namespace WebApp.Ioc
         {
             services.AddTransient<IMediaService, MediaService>();
             services.AddTransient<IMovieService, MovieService>();
+            services.AddTransient<IStudioService, StudioService>();
         }
 
         public static void ConfigureCloudinary(this IServiceCollection services)

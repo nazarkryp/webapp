@@ -2,8 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using WebApp.Ioc;
-
-// using WebApp.Web.Messaging;
+using WebApp.Web.Infrastructure.Configuration;
 
 namespace WebApp.Web.Infrastructure.Ioc
 {
@@ -17,6 +16,8 @@ namespace WebApp.Web.Infrastructure.Ioc
             services.ConfigureServices();
             services.ConfigureSecurity();
             services.ConfigureInfrastructure();
+
+            services.AddSingleton<WebApp.Infrastructure.Configuration.IConfigurationProvider, DefaultConfigurationProvider>();
             //var queueConnectionString = configuration.GetConnectionString("StorageConnectionString");
             //services.AddSingleton<IEventPublisher, EventPublisher>(_ => new EventPublisher(queueConnectionString));
         }

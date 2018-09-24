@@ -2,7 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 
-using WebApp.Dto.Common;
+using WebApp.Dto.Movies;
 using WebApp.Services.Movies;
 
 namespace WebApp.Web.Controllers
@@ -20,7 +20,7 @@ namespace WebApp.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetMoviesAsync([FromQuery] QueryFilter queryFilter)
+        public async Task<IActionResult> GetMoviesAsync([FromQuery] MoviesQueryFilter queryFilter)
         {
             var page = await _movieService.GetMoviesAsync(queryFilter);
 

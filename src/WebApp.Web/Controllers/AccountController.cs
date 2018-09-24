@@ -1,9 +1,12 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Dto.Account;
+using WebApp.Infrastructure.Configuration;
 using WebApp.Security;
-using WebApp.Security.Configuration;
 
 namespace WebApp.Web.Controllers
 {
@@ -13,32 +16,45 @@ namespace WebApp.Web.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAuthenticationProvider _securityProvider;
+        private readonly IConfigurationProvider _configurationProvider;
 
-        public AccountController(IAuthenticationProvider securityProvider)
+        public AccountController(IAuthenticationProvider securityProvider, IConfigurationProvider configurationProvider)
         {
             _securityProvider = securityProvider;
+            _configurationProvider = configurationProvider;
         }
 
-        [HttpGet]
-        public IActionResult Index()
+        [Authorize]
+        public IActionResult GetAccount()
         {
-            return Redirect(_securityProvider.RedirectUri);
+            var claims = User.Claims.ToDictionary(e => e.Type, e => e.Value);
+
+            var account = new Account
+            {
+                Email = User.Claims.FirstOrDefault(e => e.Type == ClaimTypes.Name)?.Value,
+                Firstname = User.Claims.FirstOrDefault(e => e.Type == ClaimTypes.GivenName)?.Value,
+                Lastname = User.Claims.FirstOrDefault(e => e.Type == ClaimTypes.Surname)?.Value,
+                Picture = User.Claims.FirstOrDefault(e => e.Type == "picture")?.Value
+            };
+
+            return Ok(account);
+        }
+
+        [HttpGet("authorize")]
+        public IActionResult SignIn()
+        {
+            var redirectUri = _securityProvider.RedirectUri;
+
+            return Redirect(redirectUri);
         }
 
         [HttpGet("callback")]
-        public async Task<IActionResult> Callback()
+        public async Task<IActionResult> Callback([FromQuery] string code)
         {
-            var code = this.Request.Query["code"];
+            var accessToken = await _securityProvider.GetAccessToken(code);
 
-            var token = await _securityProvider.GetAccessToken(code);
-
-            return Redirect($"http://localhost:4200#id_token={token.IdToken}");
-            //return Ok(new
-            //{
-            //    name = User.Identity.Name,
-            //    isAuthenticated = User.Identity.IsAuthenticated,
-            //    token = token
-            //});
+            var baseAddress = _configurationProvider.Get("uiBaseAddress");
+            return Redirect($"{baseAddress}#token={accessToken}");
         }
     }
 }
