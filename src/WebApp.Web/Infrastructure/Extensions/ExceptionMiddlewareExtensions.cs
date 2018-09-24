@@ -25,7 +25,7 @@ namespace WebApp.Web.Infrastructure.Extensions
                     {
                         await context.Response.WriteAsync(new ErrorDetails
                         {
-                            StatusCode = context.Response.StatusCode,
+                            Status = (HttpStatusCode)context.Response.StatusCode,
                             Message = "Internal Server Error."
                         }.ToString());
                     }

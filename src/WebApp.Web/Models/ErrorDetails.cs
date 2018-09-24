@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 
 using Newtonsoft.Json;
 
@@ -7,7 +8,7 @@ namespace WebApp.Web.Models
     public class ErrorDetails
     {
         [JsonProperty("status")]
-        public int Status { get; set; }
+        public HttpStatusCode Status { get; set; }
 
         [JsonProperty("type")]
         public string Type { get; set; }

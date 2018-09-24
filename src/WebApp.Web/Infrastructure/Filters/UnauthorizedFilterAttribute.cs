@@ -1,30 +1,26 @@
 ﻿using System;
 using System.Net;
-using Google.Apis.Requests;
-using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http2;
+
 using WebApp.Web.Models;
 
 namespace WebApp.Web.Infrastructure.Filters
 {
     public class UnauthorizedFilterAttribute : ExceptionFilterAttribute
     {
-        public override void OnException(ExceptionContext actionExecutedContext)
+        public override void OnException(ExceptionContext context)
         {
-            if (actionExecutedContext.Exception is Exception)
+            var error = new ErrorResult(HttpStatusCode.Unauthorized, "UNAUTHORIZED 401");
+
+            var result = new JsonResult(error)
             {
-                var code = StatusCodes.Status401Unauthorized;
+                StatusCode = (int)HttpStatusCode.Unauthorized
+            };
 
-                var exception = actionExecutedContext.Exception;
-
-                var error = new ErrorResult(HttpStatusCode.Unauthorized, "UNAUTHORIZED 401");
-
-                var result = new UnauthorizedResult();
-
-                actionExecutedContext.Result = result;
-            }
+            context.Result = result;
         }
     }
 }

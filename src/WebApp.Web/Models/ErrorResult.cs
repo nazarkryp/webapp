@@ -14,7 +14,7 @@ namespace WebApp.Web.Models
         {
             Error = new ErrorDetails
             {
-                Status = (int)statusCode,
+                Status = statusCode,
                 Type = type,
                 Message = message
             };
@@ -22,9 +22,9 @@ namespace WebApp.Web.Models
 
         public ErrorResult(HttpStatusCode statusCode, IEnumerable<string> modelState)
         {
-            Error = new ErrorDetails()
+            Error = new ErrorDetails
             {
-                Status = (int)statusCode,
+                Status = statusCode,
                 Type = statusCode.ToString(),
                 ModelState = modelState
             };

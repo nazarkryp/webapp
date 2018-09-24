@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,6 @@ using WebApp.Services.Studios;
 
 namespace WebApp.Web.Controllers
 {
-    //[Authorize]
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
@@ -23,6 +23,7 @@ namespace WebApp.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStudiosAsync()
         {
+            throw new UnauthorizedAccessException();
             var studios = await _studioService.GetStudiosAsync();
 
             return Ok(studios);

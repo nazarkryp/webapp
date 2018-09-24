@@ -1,15 +1,20 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using WebApp.Web.Infrastructure.Extensions;
 using WebApp.Web.Infrastructure.Filters;
 using WebApp.Web.Infrastructure.Ioc;
+using WebApp.Web.Infrastructure.Middlewares;
+using WebApp.Web.Models;
 
 namespace WebApp.Web
 {
@@ -27,7 +32,8 @@ namespace WebApp.Web
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                     {
-                        var securityKey = Encoding.UTF8.GetBytes(Configuration["SecurityKey"]);
+                        var securityKey = Configuration["SecurityKey"];
+                        var securityKeyBytes = Encoding.UTF8.GetBytes(securityKey);
 
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
@@ -37,7 +43,7 @@ namespace WebApp.Web
                             ValidateIssuerSigningKey = true,
                             ValidIssuer = "webapp.com",
                             ValidAudience = "webapp.com",
-                            IssuerSigningKey = new SymmetricSecurityKey(securityKey)
+                            IssuerSigningKey = new SymmetricSecurityKey(securityKeyBytes)
                         };
                     }
                 );
@@ -60,15 +66,17 @@ namespace WebApp.Web
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                //app.UseHsts();
-            }
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
+            //else
+            //{
+            //    app.UseExceptionHandler("/Error");
+            //    //app.UseHsts();
+            //}
+
+            app.UseExceptionHandler("/Error");
 
             app.UseHttpsRedirection();
             app.UseAuthentication();
@@ -78,11 +86,25 @@ namespace WebApp.Web
 
             app.ConfigureExceptionHandler();
 
+            app.UseMiddleware(typeof(ErrorHandlingMiddleware));
+
+            //app.UseStatusCodePages(context =>
+            //{
+            //    context.HttpContext.Response.ContentType = "application/json";
+
+            //    var body = context.HttpContext.Response.Body;
+
+            //    var errorResult = new ErrorResult((HttpStatusCode)context.HttpContext.Response.StatusCode, string.Empty);
+            //    var jsonResult = JsonConvert.SerializeObject(errorResult);
+
+            //    return context.HttpContext.Response.WriteAsync(jsonResult);
+            //});
+
             app.UseMvc(routes =>
             {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                //routes.MapRoute(
+                //    name: "default",
+                //    template: "{controller=Home}/{action=Index}/{id?}");
             });
 
             //app.UseSpa(spa =>
