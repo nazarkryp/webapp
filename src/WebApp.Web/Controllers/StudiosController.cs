@@ -23,16 +23,15 @@ namespace WebApp.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStudiosAsync()
         {
-            throw new UnauthorizedAccessException();
             var studios = await _studioService.GetStudiosAsync();
 
             return Ok(studios);
         }
 
-        [HttpGet("studioId")]
-        public async Task<IActionResult> GetStudioByIdAsync([FromQuery]int studioId)
+        [HttpGet("{studioId:int}")]
+        public async Task<IActionResult> GetStudioByIdAsync(int studioId)
         {
-            var studios = await _studioService.GetStudiosAsync();
+            var studios = await _studioService.GetStudioByIdAsync(studioId);
 
             return Ok(studios);
         }

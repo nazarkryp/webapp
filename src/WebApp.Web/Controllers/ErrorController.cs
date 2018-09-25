@@ -7,6 +7,7 @@ namespace WebApp.Web.Controllers
     [ApiController]
     public class ErrorController : ControllerBase
     {
+        [Route("{code}")]
         [HttpGet, HttpPost, HttpPut, HttpDelete, HttpHead, HttpOptions]
         public IActionResult Error()
         {

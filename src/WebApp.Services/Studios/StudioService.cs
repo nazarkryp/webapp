@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using WebApp.Dto.Studios;
 using WebApp.Mapping;
 using WebApp.Repositories.Repositories;
+using WebApp.Services.Exceptions;
 
 namespace WebApp.Services.Studios
 {
@@ -28,6 +29,11 @@ namespace WebApp.Services.Studios
         public async Task<Studio> GetStudioByIdAsync(int studioId)
         {
             var studio = await _studios.FindAsync(studioId);
+
+            if (studio == null)
+            {
+                throw new ResourceNotFoundException($"Studio {studioId} not found");
+            }
 
             return _mapper.Map<Studio>(studio);
         }

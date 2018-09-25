@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Text;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -50,7 +51,7 @@ namespace WebApp.Web
 
             services.AddMvc(options =>
             {
-                options.Filters.Add(new UnauthorizedFilterAttribute());
+                ConfigureFilters(options);
             })
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
@@ -76,29 +77,37 @@ namespace WebApp.Web
             //    //app.UseHsts();
             //}
 
-            app.UseExceptionHandler("/Error");
-
             app.UseHttpsRedirection();
             app.UseAuthentication();
 
             //app.UseStaticFiles();
             //app.UseSpaStaticFiles();
 
-            app.ConfigureExceptionHandler();
+            //app.UseMiddleware(typeof(ErrorHandlingMiddleware));
 
-            app.UseMiddleware(typeof(ErrorHandlingMiddleware));
+            app.UseStatusCodePages(context =>
+            {
+                Exception exception;
+                switch (context.HttpContext.Response.StatusCode)
+                {
+                    case 401:
+                        exception = new Exception("Authorization has been denied for this request");
+                        break;
+                    case 404:
+                        exception = new Exception("No resource was found that matches the request URI");
+                        break;
+                    default:
+                        exception = new Exception("Something went wront. Weird things happen");
+                        break;
+                }
 
-            //app.UseStatusCodePages(context =>
-            //{
-            //    context.HttpContext.Response.ContentType = "application/json";
+                context.HttpContext.Response.ContentType = "application/json";
 
-            //    var body = context.HttpContext.Response.Body;
+                var errorResult = new ErrorResult((HttpStatusCode)context.HttpContext.Response.StatusCode, exception.Message);
+                var jsonResult = JsonConvert.SerializeObject(errorResult);
 
-            //    var errorResult = new ErrorResult((HttpStatusCode)context.HttpContext.Response.StatusCode, string.Empty);
-            //    var jsonResult = JsonConvert.SerializeObject(errorResult);
-
-            //    return context.HttpContext.Response.WriteAsync(jsonResult);
-            //});
+                return context.HttpContext.Response.WriteAsync(jsonResult);
+            });
 
             app.UseMvc(routes =>
             {
@@ -116,6 +125,11 @@ namespace WebApp.Web
             //        spa.UseAngularCliServer(npmScript: "start");
             //    }
             //});
+        }
+
+        private static void ConfigureFilters(MvcOptions options)
+        {
+            options.Filters.Add(new ResourceNotFoundFilterAttribute());
         }
     }
 }
