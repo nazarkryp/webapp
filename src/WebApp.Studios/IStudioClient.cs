@@ -9,6 +9,6 @@ namespace WebApp.Studios
 
         Task<int> GetPagesCountAsync();
 
-        Task<IEnumerable<IMovie>> GetMoviesAsync(int pageIndex);
+        Task<IEnumerable<StudioMovie>> GetMoviesAsync(int page);
     }
 }

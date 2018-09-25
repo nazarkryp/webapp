@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebApp.Studios.Brazzers.Models
+namespace WebApp.Studios
 {
-    internal class Movie : IMovie
+    public class StudioMovie
     {
         public string Title { get; set; }
 
@@ -15,8 +15,8 @@ namespace WebApp.Studios.Brazzers.Models
 
         public TimeSpan Duration { get; set; }
 
-        public IEnumerable<IModel> Models { get; set; }
+        public IEnumerable<StudioAttachment> Attachments { get; set; }
 
-        public IEnumerable<IAttachment> Attachments { get; set; }
+        public IEnumerable<StudioModel> Models { get; set; }
     }
 }

@@ -20,7 +20,8 @@
     <ProjectReference Include="..\WebApp.Services\WebApp.Services.csproj" />
     <ProjectReference Include="..\WebApp.Storage.Cloudinary\WebApp.Storage.Cloudinary.csproj" />
     <ProjectReference Include="..\WebApp.Storage\WebApp.Storage.csproj" />
-    <ProjectReference Include="..\WebApp.Studios.Brazzers\WebApp.Studios.Brazzers.csproj" />
+    <ProjectReference Include="..\WebApp.Studios.Studio1\WebApp.Studios.Studio1.csproj" />
+    <ProjectReference Include="..\WebApp.Studios.Studio2\WebApp.Studios.Studio2.csproj" />
     <ProjectReference Include="..\WebApp.Studios\WebApp.Studios.csproj" />
   </ItemGroup>
 

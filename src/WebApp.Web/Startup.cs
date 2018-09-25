@@ -10,11 +10,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+
 using Newtonsoft.Json;
-using WebApp.Web.Infrastructure.Extensions;
+
 using WebApp.Web.Infrastructure.Filters;
 using WebApp.Web.Infrastructure.Ioc;
-using WebApp.Web.Infrastructure.Middlewares;
 using WebApp.Web.Models;
 
 namespace WebApp.Web
@@ -48,6 +48,13 @@ namespace WebApp.Web
                         };
                     }
                 );
+
+            services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+            {
+                builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            }));
 
             services.AddMvc(options =>
             {
@@ -108,6 +115,8 @@ namespace WebApp.Web
 
                 return context.HttpContext.Response.WriteAsync(jsonResult);
             });
+
+            app.UseCors("MyPolicy");
 
             app.UseMvc(routes =>
             {

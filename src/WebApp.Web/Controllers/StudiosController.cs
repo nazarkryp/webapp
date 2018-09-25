@@ -1,9 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using WebApp.Dto.Common;
+using WebApp.Dto.Studios;
 using WebApp.Services.Studios;
 
 namespace WebApp.Web.Controllers
@@ -25,7 +24,9 @@ namespace WebApp.Web.Controllers
         {
             var studios = await _studioService.GetStudiosAsync();
 
-            return Ok(studios);
+            var response = new DataResponse<Studio>(studios);
+
+            return Ok(response);
         }
 
         [HttpGet("{studioId:int}")]

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,7 @@ namespace WebApp.Repositories.EntityFramework.Extensions
         public static async Task<Page<TEntity>> GetPageAsync<TEntity>(
              this IQueryable<TEntity> source,
              string orderBy,
-             int offset,
+             int page,
              int size) where TEntity : class
         {
             if (string.IsNullOrEmpty(orderBy))
@@ -22,13 +23,19 @@ namespace WebApp.Repositories.EntityFramework.Extensions
                 throw new ArgumentException(nameof(orderBy));
             }
 
-            if (size < 0)
+            if (size < 1)
             {
                 throw new ArgumentException(nameof(size));
             }
 
+            if (page < 1)
+            {
+                throw new ArgumentException(nameof(page));
+            }
+
             var total = source.Count();
-            var query = source.OrderByDescending(e => e).Skip(offset).Take(size);
+
+            var query = source.OrderBy(orderBy).Skip((page - 1) * size).Take(size);
 
             var filtered = query is IAsyncEnumerable<TEntity> ? await query.ToListAsync() : query.ToList();
 
@@ -37,8 +44,19 @@ namespace WebApp.Repositories.EntityFramework.Extensions
                 Total = total,
                 Data = filtered,
                 Size = size,
-                Offset = offset
+                Offset = page
             };
+        }
+
+        private static IQueryable<T> OrderBy<T>(this IQueryable<T> source, string ordering)
+        {
+            var type = typeof(T);
+            var property = type.GetProperty(ordering);
+            var parameter = Expression.Parameter(type, "p");
+            var propertyAccess = Expression.MakeMemberAccess(parameter, property);
+            var orderByExp = Expression.Lambda(propertyAccess, parameter);
+            MethodCallExpression resultExp = Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { type, property.PropertyType }, source.Expression, Expression.Quote(orderByExp));
+            return source.Provider.CreateQuery<T>(resultExp);
         }
     }
 }

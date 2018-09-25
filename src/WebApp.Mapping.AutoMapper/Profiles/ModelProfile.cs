@@ -9,8 +9,8 @@ namespace WebApp.Mapping.AutoMapper.Profiles
     {
         public ModelProfile()
         {
-            CreateMap<IModel, Model>()
-                .ForMember(e => e.ModelId, opt => opt.Ignore());
+            CreateMap<WebApp.Studios.StudioModel, Model>()
+                  .ForMember(e => e.ModelId, opt => opt.Ignore());
 
             CreateMap<Model, Dto.Models.Model>();
         }

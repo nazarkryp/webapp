@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 using AngleSharp;
 using AngleSharp.Dom;
 
-using WebApp.Studios.Brazzers.Models;
-
-namespace WebApp.Studios.Brazzers
+namespace WebApp.Studios.Studio1
 {
-    public class BrazzersClient : IStudioClient
+    public class Studio1Client : IStudioClient
     {
         private const string BaseAddress = "https://tour.brazzersnetwork.com";
 
@@ -20,8 +18,8 @@ namespace WebApp.Studios.Brazzers
         public async Task<int> GetPagesCountAsync()
         {
             var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/1/";
-            var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
 
             var config = Configuration.Default.WithDefaultLoader();
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
@@ -33,12 +31,12 @@ namespace WebApp.Studios.Brazzers
             return int.Parse(href.EndsWith("/") ? arr[arr.Length - 2] : arr[arr.Length - 1]);
         }
 
-        public async Task<IEnumerable<IMovie>> GetMoviesAsync(int page)
+        public async Task<IEnumerable<StudioMovie>> GetMoviesAsync(int page)
         {
             var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/{page}/";
             var config = Configuration.Default.WithDefaultLoader();
-            var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
 
             Console.WriteLine($"Getting: {requestUri}");
 
@@ -50,9 +48,9 @@ namespace WebApp.Studios.Brazzers
             return movies;
         }
 
-        private Movie ParseElement(IElement element)
+        private StudioMovie ParseElement(IElement element)
         {
-            var movie = new Movie();
+            var movie = new StudioMovie();
 
             var link = element.QuerySelectorAll("a.sample-picker").FirstOrDefault();
             var time = element.QuerySelector("time");
@@ -63,7 +61,7 @@ namespace WebApp.Studios.Brazzers
 
             var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
 
-            movie.Models = models?.Select(e => new Model
+            movie.Models = models?.Select(e => new StudioModel
             {
                 Name = e
             });
@@ -73,7 +71,7 @@ namespace WebApp.Studios.Brazzers
                 var value = e.GetAttribute("data-src");
                 var uri = value.StartsWith("//", StringComparison.Ordinal) ? $"http://{value.Substring("//".Length)}" : value;
 
-                return new Attachment
+                return new StudioAttachment
                 {
                     Uri = uri
                 };
@@ -104,9 +102,9 @@ namespace WebApp.Studios.Brazzers
             return movie;
         }
 
-        private static Movie ParseLegacyElement(IElement element)
+        private static StudioMovie ParseLegacyElement(IElement element)
         {
-            var movie = new Movie();
+            var movie = new StudioMovie();
 
             var card = element.QuerySelector(".card-image");
 
@@ -117,7 +115,7 @@ namespace WebApp.Studios.Brazzers
 
             var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
 
-            movie.Models = models?.Select(e => new Model
+            movie.Models = models?.Select(e => new StudioModel
             {
                 Name = e
             });
@@ -126,9 +124,9 @@ namespace WebApp.Studios.Brazzers
 
             if (!string.IsNullOrEmpty(imgSrc))
             {
-                movie.Attachments = new List<IAttachment>
+                movie.Attachments = new List<StudioAttachment>
                 {
-                    new Attachment
+                    new StudioAttachment
                     {
                         Uri = imgSrc.StartsWith("//") ? $"https://{imgSrc}" : imgSrc
                     }

@@ -20,7 +20,8 @@ using WebApp.Storage;
 using WebApp.Storage.Cloudinary;
 using WebApp.Storage.Cloudinary.Configuration;
 using WebApp.Studios;
-using WebApp.Studios.Brazzers;
+using WebApp.Studios.Studio1;
+using WebApp.Studios.Studio2;
 
 namespace WebApp.Ioc
 {
@@ -69,7 +70,8 @@ namespace WebApp.Ioc
 
         public static void ConfigureStudioClients(this IServiceCollection services)
         {
-            services.AddTransient<IStudioClient, BrazzersClient>();
+            services.AddTransient<IStudioClient, Studio1Client>();
+            services.AddTransient<IStudioClient, Studio2Client>();
         }
     }
 }

@@ -62,7 +62,7 @@ namespace WebApp.Jobs.Sync.Jobs
 
         private async Task SyncMoviesAsync(IStudioClient studioClient, int startFrom, int studioId, SyncDetails syncDetails)
         {
-            var buffer = new ConcurrentDictionary<int, IEnumerable<IMovie>>();
+            var buffer = new ConcurrentDictionary<int, IEnumerable<Studios.StudioMovie>>();
 
             await _concurrentActionHandler.ForAsync(async pageIndex =>
             {
@@ -71,7 +71,7 @@ namespace WebApp.Jobs.Sync.Jobs
             }, startFrom, 0, _syncConfiguration.MaxDegreeOfParallelism, async () => { syncDetails = await SaveAsync(buffer, syncDetails, studioId); });
         }
 
-        private async Task<SyncDetails> SaveAsync(ConcurrentDictionary<int, IEnumerable<IMovie>> buffer, SyncDetails syncDetails, int studioId)
+        private async Task<SyncDetails> SaveAsync(ConcurrentDictionary<int, IEnumerable<Studios.StudioMovie>> buffer, SyncDetails syncDetails, int studioId)
         {
             var pages = buffer.OrderByDescending(e => e.Key).ToList();
 
@@ -97,7 +97,7 @@ namespace WebApp.Jobs.Sync.Jobs
         {
             var existingMovies = await _movieRepository.LatestAsync(studioId);
 
-            var buffer = new ConcurrentDictionary<int, IEnumerable<IMovie>>();
+            var buffer = new ConcurrentDictionary<int, IEnumerable<Studios.StudioMovie>>();
             var cts = new CancellationTokenSource();
 
             await _concurrentActionHandler.ForAsync(async pageIndex =>
@@ -131,13 +131,13 @@ namespace WebApp.Jobs.Sync.Jobs
             }, cts.Token);
         }
 
-        private async Task<Studio> GetStudioAsync(IStudioClient studioClient)
+        private async Task<Domain.Entities.Studio> GetStudioAsync(IStudioClient studioClient)
         {
             var studio = await _studioRepository.FindAsync(studioClient.StudioName);
 
             if (studio == null)
             {
-                studio = new Studio
+                studio = new Domain.Entities.Studio
                 {
                     Name = studioClient.StudioName
                 };
@@ -154,7 +154,7 @@ namespace WebApp.Jobs.Sync.Jobs
             {
                 syncDetails = new SyncDetails
                 {
-                    Studio = new Studio
+                    Studio = new Domain.Entities.Studio
                     {
                         StudioId = studioId
                     }
@@ -177,13 +177,13 @@ namespace WebApp.Jobs.Sync.Jobs
             return syncDetails;
         }
 
-        private IEnumerable<Movie> MapMovies(IEnumerable<IMovie> studioMovies, int studioId)
+        private IEnumerable<Domain.Entities.Movie> MapMovies(IEnumerable<Studios.StudioMovie> studioMovies, int studioId)
         {
             var movies = _mapper.Map<IEnumerable<Movie>>(studioMovies).ToList();
 
             foreach (var movie in movies)
             {
-                movie.Studio = new Studio
+                movie.Studio = new Domain.Entities.Studio
                 {
                     StudioId = studioId
                 };

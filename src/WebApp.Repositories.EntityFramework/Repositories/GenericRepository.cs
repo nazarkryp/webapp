@@ -72,7 +72,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             return query;
         }
 
-        protected async Task<Page<T>> GetPageAsync<T>(IQueryable<T> query, string[] orderByFields, int? next, int? size) where T : class
+        protected async Task<Page<T>> GetPageAsync<T>(IQueryable<T> query, string[] orderByFields, int? page, int? size) where T : class
         {
             if (!size.HasValue)
             {
@@ -83,14 +83,14 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             {
                 size = 12;
             }
-            else if (size > 12)
+            else if (size > 48)
             {
-                size = 12;
+                size = 48;
             }
 
             var orderByFilter = BuildOrderByFilter(orderByFields);
 
-            return await query.GetPageAsync(orderByFilter, next ?? 0, size.Value);
+            return await query.GetPageAsync(orderByFilter, page ?? 1, size.Value);
         }
 
         private static string BuildOrderByFilter(string[] orderByFields)

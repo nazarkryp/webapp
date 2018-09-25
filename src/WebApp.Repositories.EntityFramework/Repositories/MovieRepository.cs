@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -62,18 +63,25 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<IEnumerable<Movie>> AddRangeAsync(IEnumerable<Movie> movies)
         {
+            
             var modelsNames = movies.SelectMany(e => e.Models).Select(e => e.Name).Distinct();
 
-            var existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
-            var models = existingModels;
+            var existingModels = await Context.Set<Binding.Models.Model>().AsNoTracking().ToListAsync();
 
             // var modelsToSave = modelsNames.Where(e => models.All(em => !string.Equals(em.Name, e, StringComparison.CurrentCultureIgnoreCase))).Select(name => new Binding.Models.Model { Name = name }).ToList();
 
-            var modelsToSave = modelsNames.Where(s => models.All(m => s.Split().All(e => m.Name.Split().Any(n => n == e)))).Select(name => new Binding.Models.Model { Name = name }).ToList();
+            //var modelsToSave = modelsNames.Where(
+            //        s => existingModels.All(
+            //            m => s.Split().All(e => m.Name.Split().Any(n => n.ToLower() == e.ToLower()))))
+            //    .Select(name => new Binding.Models.Model { Name = name }).ToList();
+
+            var modelsToSave = modelsNames.Where(e => existingModels.All(existing => !CompareNames(e, existing.Name)))
+                .Select(name => new Binding.Models.Model { Name = name });
 
             if (modelsToSave.Any())
             {
-                await Context.Set<Binding.Models.Model>().AddRangeAsync(modelsToSave);
+                Context.Set<Binding.Models.Model>().AddRange(modelsToSave);
+
                 await SaveChangesAsync();
 
                 existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
@@ -82,6 +90,19 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             var entities = _mapper.Map<IList<Binding.Models.Movie>>(movies);
 
             MapReferences(existingModels, entities);
+
+            //foreach (var entity in entities)
+            //{
+            //    try
+            //    {
+            //        Context.Set<Binding.Models.Movie>().Add(entity);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Console.WriteLine(e);
+            //        throw;
+            //    }
+            //}
 
             await Context.Set<Binding.Models.Movie>().AddRangeAsync(entities);
 
@@ -92,18 +113,27 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         private static void MapReferences(IReadOnlyCollection<Binding.Models.Model> existingModels, IEnumerable<Binding.Models.Movie> entities)
         {
-            var movieModels = entities.SelectMany(e => e.MovieModels);
+            var entityMovieModels = entities.SelectMany(e => e.MovieModels);
 
-            foreach (var entityMovieModel in movieModels)
+            foreach (var entityMovieModel in entityMovieModels)
             {
-                var model = existingModels.FirstOrDefault(existing => existing.Name.Split().All(e => entityMovieModel.Model.Name.Split().Any(n => n == e))); ;
+                var existingModel = existingModels.FirstOrDefault(existing => existing.Name.ToLower().Split().All(e => entityMovieModel.Model.Name.ToLower().Split().Any(n => n == e)));
 
-                if (model != null)
+                if (existingModel != null)
                 {
-                    entityMovieModel.ModelId = model.ModelId;
-                    entityMovieModel.Model.Name = null;
+                    entityMovieModel.ModelId = existingModel.ModelId;
+                    entityMovieModel.Model = null;
+                }
+                else
+                {
+
                 }
             }
+        }
+
+        private static bool CompareNames(string name1, string name2)
+        {
+            return name1.ToLower().Split().SequenceEqual(name2.ToLower().Split());
         }
     }
 }

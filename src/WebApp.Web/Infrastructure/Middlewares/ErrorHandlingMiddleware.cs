@@ -23,8 +23,6 @@ namespace WebApp.Web.Infrastructure.Middlewares
         public async Task Invoke(HttpContext context)
         {
             await next(context);
-
-           
         }
 
         private static Task HandleExceptionAsync(HttpContext context, Exception exception = null)

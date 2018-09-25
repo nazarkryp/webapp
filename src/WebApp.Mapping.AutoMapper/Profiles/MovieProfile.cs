@@ -9,12 +9,12 @@ namespace WebApp.Mapping.AutoMapper.Profiles
     {
         public MovieProfile()
         {
-            CreateMap<IMovie, Movie>()
+            CreateMap<StudioMovie, Movie>()
                 .ForMember(e => e.Models, opt => opt.MapFrom(e => e.Models))
                 .ForMember(e => e.MovieId, opt => opt.Ignore())
                 .ForMember(e => e.Studio, opt => opt.Ignore());
 
-            CreateMap<Movie, Dto.Movies.Movie>();
+            CreateMap<Domain.Entities.Movie, Dto.Movies.Movie>();
         }
     }
 }

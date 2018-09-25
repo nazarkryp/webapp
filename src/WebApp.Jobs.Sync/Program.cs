@@ -21,7 +21,11 @@ namespace WebApp.Jobs.Sync
 
                 var job = serviceProvider.GetService<IJob>();
 
-                var studioClients = serviceProvider.GetServices<IStudioClient>();
+                //var studioClients = serviceProvider.GetServices<IStudioClient>();
+
+                //await Task.WhenAll(studioClients.Select(job.SyncAsync));
+
+                var studioClients = serviceProvider.GetServices<IStudioClient>().Where(e => e.StudioName == "Naughty America");
 
                 await Task.WhenAll(studioClients.Select(job.SyncAsync));
             }
