@@ -1,12 +1,15 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 using WebApp.Dto.Common;
 using WebApp.Dto.Studios;
 using WebApp.Services.Studios;
 
 namespace WebApp.Web.Controllers
 {
+    [Authorize]
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]

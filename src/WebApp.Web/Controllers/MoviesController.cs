@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using WebApp.Dto.Movies;
@@ -7,6 +8,7 @@ using WebApp.Services.Movies;
 
 namespace WebApp.Web.Controllers
 {
+    [Authorize]
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
@@ -25,6 +27,12 @@ namespace WebApp.Web.Controllers
             var page = await _movieService.GetMoviesAsync(queryFilter);
 
             return Ok(page);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMovieAsync()
+        {
+            return Ok();
         }
     }
 }

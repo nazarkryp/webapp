@@ -33,4 +33,5 @@ msbuild.wrn
 # Visual Studio 2015
 .vs/
 src/WebApp.Database/WebApp.Database.dbmdl
+src/WebApp.Database/WebApp.Database.jfm
 src/WebApp.Web/Client/node_modules/

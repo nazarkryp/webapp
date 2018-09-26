@@ -1,9 +1,10 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 using WebApp.Dto.Account;
 using WebApp.Infrastructure.Configuration;
 using WebApp.Security;
@@ -27,8 +28,6 @@ namespace WebApp.Web.Controllers
         [Authorize]
         public IActionResult GetAccount()
         {
-            var claims = User.Claims.ToDictionary(e => e.Type, e => e.Value);
-
             var account = new Account
             {
                 Email = User.Claims.FirstOrDefault(e => e.Type == ClaimTypes.Name)?.Value,
