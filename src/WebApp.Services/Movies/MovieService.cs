@@ -5,6 +5,7 @@ using WebApp.Dto.Movies;
 using WebApp.Infrastructure.Parsers;
 using WebApp.Mapping;
 using WebApp.Repositories.Common;
+using WebApp.Repositories.Movies;
 using WebApp.Repositories.Repositories;
 
 namespace WebApp.Services.Movies
@@ -26,11 +27,13 @@ namespace WebApp.Services.Movies
         {
             var orderByFilters = _orderByFilterParser.Parse<Movie>(queryFilter?.Orderby) ?? new[] { nameof(Movie.Date) };
 
-            var pagingFilter = new PagingFilter
+            var pagingFilter = new MoviesPagingFilter
             {
                 OrderBy = orderByFilters,
                 Page = queryFilter?.Page,
-                Size = queryFilter?.Size
+                Size = queryFilter?.Size,
+                SearchQuery = queryFilter?.SearchQuery,
+                StudioIds = queryFilter?.StudioIds
             };
 
             var page = await _movies.GetPageAsync(pagingFilter);

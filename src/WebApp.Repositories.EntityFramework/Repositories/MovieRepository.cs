@@ -4,11 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.EntityFrameworkCore.Query;
 using WebApp.Domain.Entities;
 using WebApp.Mapping;
 using WebApp.Repositories.Common;
 using WebApp.Repositories.EntityFramework.Context;
+using WebApp.Repositories.Movies;
 using WebApp.Repositories.Repositories;
 
 namespace WebApp.Repositories.EntityFramework.Repositories
@@ -31,9 +32,21 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             return _mapper.Map<IEnumerable<Movie>>(movies);
         }
 
-        public async Task<Page<Movie>> GetPageAsync(IPagingFilter pagingFilter)
+        public async Task<Page<Movie>> GetPageAsync(MoviesPagingFilter pagingFilter)
         {
-            var query = Context.Set<Binding.Models.Movie>()
+            IQueryable<Binding.Models.Movie> query = Context.Set<Binding.Models.Movie>();
+
+            if (!string.IsNullOrEmpty(pagingFilter?.SearchQuery))
+            {
+                query = query.Where(e => e.Title.ToLower().Contains(pagingFilter.SearchQuery) || e.Description.ToLower().Contains(pagingFilter.SearchQuery));
+            }
+
+            if (pagingFilter?.StudioIds != null && pagingFilter.StudioIds.Length > 0)
+            {
+                query = query.Where(e => pagingFilter.StudioIds.Contains(e.StudioId));
+            }
+
+            query = query
                 .Include(e => e.Studio)
                 .Include(e => e.Attachments)
                 .Include(e => e.MovieModels)
@@ -63,7 +76,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<IEnumerable<Movie>> AddRangeAsync(IEnumerable<Movie> movies)
         {
-            
+
             var modelsNames = movies.SelectMany(e => e.Models).Select(e => e.Name).Distinct();
 
             var existingModels = await Context.Set<Binding.Models.Model>().AsNoTracking().ToListAsync();

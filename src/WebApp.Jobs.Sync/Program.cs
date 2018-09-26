@@ -21,13 +21,14 @@ namespace WebApp.Jobs.Sync
 
                 var job = serviceProvider.GetService<IJob>();
 
-                //var studioClients = serviceProvider.GetServices<IStudioClient>();
+                var studioClients = serviceProvider.GetServices<IStudioClient>();
 
-                //await Task.WhenAll(studioClients.Select(job.SyncAsync));
+                foreach (var studioClient in studioClients)
+                {
+                    await job.SyncAsync(studioClient);
+                }
 
-                var studioClients = serviceProvider.GetServices<IStudioClient>().Where(e => e.StudioName == "Naughty America");
-
-                await Task.WhenAll(studioClients.Select(job.SyncAsync));
+                // await Task.WhenAll(studioClients.Select(job.SyncAsync));
             }
             catch (Exception e)
             {

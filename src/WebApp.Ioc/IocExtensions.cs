@@ -36,7 +36,7 @@ namespace WebApp.Ioc
 
         public static void ConfigureRepositories(this IServiceCollection services)
         {
-            services.AddDbContext<WebAppDbContext>(options => options.UseSqlServer("Data Source=.;Initial Catalog=WebApp;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"));
+            services.AddDbContext<WebAppDbContext>(options => options.UseSqlServer("Data Source=.;Initial Catalog=WebApp;Integrated Security=True;Connect Timeout=60;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"));
             services.AddTransient<IMediaRepository, MediaRepository>();
             services.AddTransient<IStudioRepository, StudioRepository>();
             services.AddTransient<IMovieRepository, MovieRepository>();

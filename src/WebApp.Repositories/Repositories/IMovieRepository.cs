@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using WebApp.Domain.Entities;
 using WebApp.Repositories.Common;
+using WebApp.Repositories.Movies;
 
 namespace WebApp.Repositories.Repositories
 {
@@ -10,7 +11,7 @@ namespace WebApp.Repositories.Repositories
     {
         Task<IEnumerable<Movie>> LatestAsync(int studioId);
 
-        Task<Page<Movie>> GetPageAsync(IPagingFilter pagingFilter);
+        Task<Page<Movie>> GetPageAsync(MoviesPagingFilter pagingFilter);
 
         Task<Movie> AddAsync(Movie movie);
 
