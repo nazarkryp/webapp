@@ -4,9 +4,9 @@ using WebApp.Domain.Entities;
 
 namespace WebApp.Mapping.AutoMapper.Profiles
 {
-    public class CategorieProfile : Profile
+    public class CategoryProfile : Profile
     {
-        public CategorieProfile()
+        public CategoryProfile()
         {
             CreateMap<string, Category>()
                 .ForMember(e => e.Name, opt => opt.MapFrom(e => e))

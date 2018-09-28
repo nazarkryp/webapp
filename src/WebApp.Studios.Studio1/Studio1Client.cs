@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 
 using AngleSharp;
 using AngleSharp.Dom;
-using AngleSharp.Dom.Html;
-using AngleSharp.Extensions;
 
 namespace WebApp.Studios.Studio1
 {
@@ -73,7 +71,7 @@ namespace WebApp.Studios.Studio1
                 description.RemoveChild(description.QuerySelector(".collapse"));
             }
 
-            var categories = document.QuerySelector(".tag-card-container")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
+            var categories = document.QuerySelector(".tag-card-container")?.QuerySelectorAll("a")?.Select(e => e.TextContent).Distinct();
 
             var movie = new StudioMovie
             {
@@ -96,7 +94,7 @@ namespace WebApp.Studios.Studio1
             movie.Uri = $"{BaseAddress}{link?.GetAttribute("href")}";
             movie.Description = element.QuerySelector(".scene-postcard-description")?.TextContent?.Trim();
 
-            var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
+            var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent).Distinct();
 
             movie.Models = models;
 

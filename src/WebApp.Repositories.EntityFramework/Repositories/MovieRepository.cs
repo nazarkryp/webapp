@@ -122,27 +122,21 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task UpdateAsync(IEnumerable<Movie> movies)
         {
-            var categories = await SaveCategoriesAsync(movies.Where(e => e.Categories != null && e.Categories.Any()).SelectMany(e => e.Categories));
-            var moviesToUpdate = Context.Set<Binding.Models.Movie>().Local.Where(e => movies.Any(m => m.MovieId == e.MovieId));
+            var movieList = movies as IList<Movie> ?? movies.ToList();
 
-            foreach (var movieToUpdate in moviesToUpdate)
-            {
-                var movie = movies.FirstOrDefault(e => e.MovieId == movieToUpdate.MovieId);
-                _mapper.Map(movie, movieToUpdate);
+            var incommingCategories = movieList.Where(e => e.Categories != null && e.Categories.Any()).SelectMany(e => e.Categories);
+            var existingCategories = await SaveCategoriesAsync(incommingCategories);
 
-                foreach (var movieCategory in movieToUpdate.MovieCategories)
-                {
-                    movieCategory.CategoryId = categories.FirstOrDefault(e => string.Equals(e.Name, movieCategory.Category.Name, StringComparison.CurrentCultureIgnoreCase)).CategoryId;
-                    movieCategory.Category = null;
-                }
-            }
+            var moviesToUpdate = Context.Set<Binding.Models.Movie>().Local.Where(e => movieList.Any(m => m.MovieId == e.MovieId)).ToList();
+
+            MapCategoriesReferences(movieList, moviesToUpdate, existingCategories);
 
             Context.Set<Binding.Models.Movie>().UpdateRange(moviesToUpdate);
 
             await Context.SaveChangesAsync();
         }
 
-        private async Task<IEnumerable<Binding.Models.Category>> SaveCategoriesAsync(IEnumerable<Category> categories)
+        private async Task<IList<Binding.Models.Category>> SaveCategoriesAsync(IEnumerable<Category> categories)
         {
             var existingCategories = await Context.Set<Binding.Models.Category>().ToListAsync();
             var newCategories = categories.Where(e => !existingCategories.Any(ex => string.Equals(ex.Name, e.Name, StringComparison.CurrentCultureIgnoreCase)));
@@ -162,20 +156,11 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<IEnumerable<Movie>> AddRangeAsync(IEnumerable<Movie> movies)
         {
+            var existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
 
-            var modelsNames = movies.SelectMany(e => e.Models).Select(e => e.Name).Distinct();
+            var models = movies.SelectMany(e => e.Models).Where(e => existingModels.All(existing => !CompareNames(e.Name, existing.Name))).ToList();
 
-            var existingModels = await Context.Set<Binding.Models.Model>().AsNoTracking().ToListAsync();
-
-            // var modelsToSave = modelsNames.Where(e => models.All(em => !string.Equals(em.Name, e, StringComparison.CurrentCultureIgnoreCase))).Select(name => new Binding.Models.Model { Name = name }).ToList();
-
-            //var modelsToSave = modelsNames.Where(
-            //        s => existingModels.All(
-            //            m => s.Split().All(e => m.Name.Split().Any(n => n.ToLower() == e.ToLower()))))
-            //    .Select(name => new Binding.Models.Model { Name = name }).ToList();
-
-            var modelsToSave = modelsNames.Where(e => existingModels.All(existing => !CompareNames(e, existing.Name)))
-                .Select(name => new Binding.Models.Model { Name = name });
+            var modelsToSave = _mapper.Map<IEnumerable<Binding.Models.Model>>(models);
 
             if (modelsToSave.Any())
             {
@@ -189,19 +174,6 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             var entities = _mapper.Map<IList<Binding.Models.Movie>>(movies);
 
             MapReferences(existingModels, entities);
-
-            //foreach (var entity in entities)
-            //{
-            //    try
-            //    {
-            //        Context.Set<Binding.Models.Movie>().Add(entity);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Console.WriteLine(e);
-            //        throw;
-            //    }
-            //}
 
             await Context.Set<Binding.Models.Movie>().AddRangeAsync(entities);
 
@@ -226,14 +198,35 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             {
                 var existingModel = existingModels.FirstOrDefault(existing => existing.Name.ToLower().Split().All(e => entityMovieModel.Model.Name.ToLower().Split().Any(n => n == e)));
 
-                if (existingModel != null)
+                if (existingModel == null)
                 {
-                    entityMovieModel.ModelId = existingModel.ModelId;
-                    entityMovieModel.Model = null;
+                    continue;
                 }
-                else
-                {
 
+                entityMovieModel.ModelId = existingModel.ModelId;
+                entityMovieModel.Model = null;
+            }
+        }
+
+        private void MapCategoriesReferences(IList<Movie> source, List<Binding.Models.Movie> target, IList<Binding.Models.Category> existingCategories)
+        {
+            foreach (var movieToUpdate in target)
+            {
+                var movie = source.FirstOrDefault(e => e.MovieId == movieToUpdate.MovieId);
+
+                _mapper.Map(movie, movieToUpdate);
+
+                foreach (var movieCategory in movieToUpdate.MovieCategories)
+                {
+                    var category = existingCategories.FirstOrDefault(e => string.Equals(e.Name, movieCategory.Category.Name, StringComparison.CurrentCultureIgnoreCase));
+
+                    if (category == null)
+                    {
+                        continue;
+                    }
+
+                    movieCategory.CategoryId = category.CategoryId;
+                    movieCategory.Category = null;
                 }
             }
         }

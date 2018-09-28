@@ -98,7 +98,7 @@ namespace WebApp.Studios.Studio2
             return movie;
         }
 
-        private StudioMovie ParseLegacyElement(IElement element)
+        private static StudioMovie ParseLegacyElement(IElement element)
         {
             var movie = new StudioMovie();
 
@@ -119,12 +119,7 @@ namespace WebApp.Studios.Studio2
             var date = element.QuerySelector(".entry-date").TextContent;
             movie.Date = DateTime.Parse(date);
 
-            var models = element.QuerySelector(".contain-actors").QuerySelectorAll("a.title").Select(e => e.TextContent).Distinct();
-
-            if (models.Any())
-            {
-                movie.Models = models;
-            }
+            movie.Models = element.QuerySelector(".contain-actors").QuerySelectorAll("a.title").Select(e => e.TextContent).Distinct();
 
             return movie;
         }

@@ -11,7 +11,11 @@ namespace WebApp.Repositories.EntityFramework.Binding.Mapping
         public MovieProfile()
         {
             CreateMap<Movie, Binding.Models.Movie>()
-                .ForMember(e => e.StudioId, opt => opt.Condition(e => e.Studio != null))
+                .ForMember(e => e.StudioId, opt =>
+                {
+                    opt.Condition(e => e.Studio != null);
+                    opt.MapFrom(e => e.Studio);
+                })
                 .ForMember(e => e.StudioId, opt => opt.MapFrom(e => e.Studio.StudioId))
                 .ForMember(e => e.Studio, opt => opt.Ignore())
                 .ForMember(e => e.MovieModels, opt => opt.ResolveUsing(e =>
@@ -25,18 +29,21 @@ namespace WebApp.Repositories.EntityFramework.Binding.Mapping
                         }
                     });
                 }))
-                .ForMember(e => e.MovieCategories, opt => opt.Condition(e => e.Categories != null && e.Categories.Any()))
-                .ForMember(e => e.MovieCategories, opt => opt.ResolveUsing(e =>
+                .ForMember(e => e.MovieCategories, opt =>
                 {
-                    return e.Categories?.Select(m => new Binding.Models.MovieCategory
+                    opt.Condition(e => e.Categories != null && e.Categories.Any());
+                    opt.ResolveUsing(e =>
                     {
-                        MovieId = e.MovieId,
-                        Category = new Binding.Models.Category
+                        return e.Categories.Select(m => new Binding.Models.MovieCategory
                         {
-                            Name = m.Name
-                        }
+                            MovieId = e.MovieId,
+                            Category = new Binding.Models.Category
+                            {
+                                Name = m.Name
+                            }
+                        });
                     });
-                }));
+                });
 
             CreateMap<Binding.Models.Movie, Movie>()
                 .ForMember(e => e.Categories, opt => opt.MapFrom(e => e.MovieCategories.Select(mc => mc.Category)))
