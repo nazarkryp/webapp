@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using WebApp.Dto.Movies;
 using WebApp.Infrastructure.Parsers;
 using WebApp.Mapping;
-using WebApp.Repositories.Common;
 using WebApp.Repositories.Movies;
 using WebApp.Repositories.Repositories;
+using WebApp.Services.Exceptions;
 
 namespace WebApp.Services.Movies
 {
@@ -32,8 +32,8 @@ namespace WebApp.Services.Movies
                 OrderBy = orderByFilters,
                 Page = queryFilter?.Page,
                 Size = queryFilter?.Size,
-                SearchQuery = queryFilter?.SearchQuery,
-                StudioIds = queryFilter?.StudioIds
+                SearchQuery = queryFilter?.Search,
+                StudioIds = queryFilter?.StudioId
             };
 
             var page = await _movies.GetPageAsync(pagingFilter);
@@ -47,6 +47,18 @@ namespace WebApp.Services.Movies
             };
 
             return result;
+        }
+
+        public async Task<Movie> GetMovieAsync(int movieId)
+        {
+            var movie = await _movies.FindMovieAsync(movieId);
+
+            if (movie == null)
+            {
+                throw new ResourceNotFoundException("Movie not found");
+            }
+
+            return _mapper.Map<Movie>(movie);
         }
     }
 }

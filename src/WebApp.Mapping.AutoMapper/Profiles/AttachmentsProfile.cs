@@ -9,7 +9,8 @@ namespace WebApp.Mapping.AutoMapper.Profiles
     {
         public AttachmentsProfile()
         {
-            CreateMap<StudioAttachment, Attachment>()
+            CreateMap<string, Attachment>()
+                .ForMember(e => e.Uri, opt => opt.MapFrom(e => e))
                 .ForMember(e => e.AttachmentId, opt => opt.Ignore());
 
             CreateMap<Attachment, Dto.Attachments.Attachment>();

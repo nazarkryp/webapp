@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
+using Remotion.Linq.Utilities;
 using WebApp.Domain.Entities;
 using WebApp.Mapping;
 using WebApp.Repositories.Common;
@@ -43,7 +43,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
             if (pagingFilter?.StudioIds != null && pagingFilter.StudioIds.Length > 0)
             {
-                query = query.Where(e => pagingFilter.StudioIds.Contains(e.StudioId));
+                query = query.Where(e => pagingFilter.StudioIds.Distinct().Contains(e.StudioId));
             }
 
             query = query
@@ -52,7 +52,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 .Include(e => e.MovieModels)
                 .ThenInclude(e => e.Model);
 
-            var page = await GetPageAsync(query, pagingFilter.OrderBy, pagingFilter.Page, pagingFilter.Size);
+            var page = await GetPageAsync(query, pagingFilter?.OrderBy, pagingFilter?.Page, pagingFilter?.Size);
 
             return new Page<Movie>
             {
@@ -61,6 +61,20 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 Offset = page.Offset,
                 Total = page.Total
             };
+        }
+
+        public async Task<Movie> FindMovieAsync(int movieId)
+        {
+            var movie = await Context.Set<Binding.Models.Movie>()
+                .Include(e => e.Studio)
+                .Include(e => e.Attachments)
+                .Include(e => e.MovieModels)
+                .ThenInclude(e => e.Model)
+                .Include(e => e.MovieCategories)
+                .ThenInclude(e => e.Category)
+                .FirstOrDefaultAsync(e => e.MovieId == movieId);
+
+            return _mapper.Map<Movie>(movie);
         }
 
         public async Task<Movie> AddAsync(Movie movie)
@@ -72,6 +86,78 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             await SaveChangesAsync();
 
             return _mapper.Map<Movie>(entity);
+        }
+
+        public async Task<Movie> UpdateAsync(Movie movie)
+        {
+            var existingCategories = await Context.Set<Binding.Models.Category>().ToListAsync();
+            var newCategories = movie.Categories.Where(e => !existingCategories.Any(ex => string.Equals(ex.Name, e.Name, StringComparison.CurrentCultureIgnoreCase)));
+
+            if (newCategories.Any())
+            {
+                var categoriesToAdd = _mapper.Map<IEnumerable<Binding.Models.Category>>(newCategories).ToList();
+
+                await Context.Set<Binding.Models.Category>().AddRangeAsync(categoriesToAdd);
+                await Context.SaveChangesAsync();
+
+                existingCategories.AddRange(categoriesToAdd);
+            }
+
+            var movieToUpdate = Context.Set<Binding.Models.Movie>().Local.FirstOrDefault(e => e.MovieId == movie.MovieId);
+
+            _mapper.Map(movie, movieToUpdate);
+
+            foreach (var movieCategory in movieToUpdate.MovieCategories)
+            {
+                movieCategory.CategoryId = existingCategories.FirstOrDefault(e => string.Equals(e.Name, movieCategory.Category.Name, StringComparison.CurrentCultureIgnoreCase)).CategoryId;
+                movieCategory.Category = null;
+            }
+
+            Context.Set<Binding.Models.Movie>().Update(movieToUpdate);
+
+            await Context.SaveChangesAsync();
+
+            return movie;
+        }
+
+        public async Task UpdateAsync(IEnumerable<Movie> movies)
+        {
+            var categories = await SaveCategoriesAsync(movies.Where(e => e.Categories != null && e.Categories.Any()).SelectMany(e => e.Categories));
+            var moviesToUpdate = Context.Set<Binding.Models.Movie>().Local.Where(e => movies.Any(m => m.MovieId == e.MovieId));
+
+            foreach (var movieToUpdate in moviesToUpdate)
+            {
+                var movie = movies.FirstOrDefault(e => e.MovieId == movieToUpdate.MovieId);
+                _mapper.Map(movie, movieToUpdate);
+
+                foreach (var movieCategory in movieToUpdate.MovieCategories)
+                {
+                    movieCategory.CategoryId = categories.FirstOrDefault(e => string.Equals(e.Name, movieCategory.Category.Name, StringComparison.CurrentCultureIgnoreCase)).CategoryId;
+                    movieCategory.Category = null;
+                }
+            }
+
+            Context.Set<Binding.Models.Movie>().UpdateRange(moviesToUpdate);
+
+            await Context.SaveChangesAsync();
+        }
+
+        private async Task<IEnumerable<Binding.Models.Category>> SaveCategoriesAsync(IEnumerable<Category> categories)
+        {
+            var existingCategories = await Context.Set<Binding.Models.Category>().ToListAsync();
+            var newCategories = categories.Where(e => !existingCategories.Any(ex => string.Equals(ex.Name, e.Name, StringComparison.CurrentCultureIgnoreCase)));
+
+            if (newCategories.Any())
+            {
+                var categoriesToAdd = _mapper.Map<IEnumerable<Binding.Models.Category>>(newCategories).ToList();
+
+                await Context.Set<Binding.Models.Category>().AddRangeAsync(categoriesToAdd);
+                await Context.SaveChangesAsync();
+
+                existingCategories.AddRange(categoriesToAdd);
+            }
+
+            return existingCategories;
         }
 
         public async Task<IEnumerable<Movie>> AddRangeAsync(IEnumerable<Movie> movies)
@@ -122,6 +208,14 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             await SaveChangesAsync();
 
             return _mapper.Map<IEnumerable<Movie>>(entities);
+        }
+
+        public async Task<IEnumerable<Movie>> FindAllStudioMoviesAsync(int studioId)
+        {
+            var movies = await Context.Set<Binding.Models.Movie>()
+                .Where(e => e.StudioId == studioId && !e.MovieCategories.Any()).OrderByDescending(e => e.MovieId).ToListAsync();
+
+            return _mapper.Map<IEnumerable<Movie>>(movies);
         }
 
         private static void MapReferences(IReadOnlyCollection<Binding.Models.Model> existingModels, IEnumerable<Binding.Models.Movie> entities)

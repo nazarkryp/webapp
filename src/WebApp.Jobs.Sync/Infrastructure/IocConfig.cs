@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Microsoft.Extensions.DependencyInjection;
 
 using WebApp.Ioc;
@@ -20,6 +21,7 @@ namespace WebApp.Jobs.Sync.Infrastructure
 
             services.AddSingleton<ISyncConfiguration, SyncConfiguration>();
             services.AddTransient<IJob, SyncMoviesDataJob>();
+            services.AddTransient<IDetailsJob, SyncMovieDetailsDataJob>();
 
             return services.BuildServiceProvider();
         }

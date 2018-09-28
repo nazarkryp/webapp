@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Dom.Html;
@@ -58,6 +59,11 @@ namespace WebApp.Studios.Studio2
             return movies;
         }
 
+        public Task<StudioMovie> GetMovieDetailsAsync(string movieUri)
+        {
+            throw new NotImplementedException();
+        }
+
         private StudioMovie ParseElement(IElement element)
         {
             var movie = new StudioMovie();
@@ -75,14 +81,11 @@ namespace WebApp.Studios.Studio2
 
                 if (img != null)
                 {
-                    movie.Attachments = new List<StudioAttachment>
+                    movie.Attachments = new List<string>
                     {
-                        new StudioAttachment
-                        {
-                            Uri = img.Source.StartsWith("about://", StringComparison.Ordinal)
+                        img.Source.StartsWith("about://", StringComparison.Ordinal)
                                 ? $"http://{img.Source.Substring("about://".Length)}"
                                 : img.Source
-                        }
                     };
                 }
             }
@@ -107,14 +110,9 @@ namespace WebApp.Studios.Studio2
 
             if (!string.IsNullOrEmpty(src))
             {
-                src = src.StartsWith("//") ? $"https:{src}" : src;
-
-                movie.Attachments = new List<StudioAttachment>
+                movie.Attachments = new List<string>
                 {
-                    new StudioAttachment
-                    {
-                        Uri = src
-                    }
+                    src.StartsWith("//") ? $"https:{src}" : src
                 };
             }
 
@@ -125,10 +123,7 @@ namespace WebApp.Studios.Studio2
 
             if (models.Any())
             {
-                movie.Models = models.Select(name => new StudioModel
-                {
-                    Name = name
-                });
+                movie.Models = models;
             }
 
             return movie;

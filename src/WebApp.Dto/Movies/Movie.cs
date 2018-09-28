@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using WebApp.Dto.Attachments;
+using WebApp.Dto.Categories;
 using WebApp.Dto.Models;
 using WebApp.Dto.Studios;
 
@@ -26,5 +27,7 @@ namespace WebApp.Dto.Movies
         public IEnumerable<Attachment> Attachments { get; set; }
 
         public IEnumerable<Model> Models { get; set; }
+
+        public IEnumerable<Category> Categories { get; set; }
     }
 }

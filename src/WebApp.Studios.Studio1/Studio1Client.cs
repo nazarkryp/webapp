@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using AngleSharp;
 using AngleSharp.Dom;
+using AngleSharp.Dom.Html;
+using AngleSharp.Extensions;
 
 namespace WebApp.Studios.Studio1
 {
@@ -48,6 +51,40 @@ namespace WebApp.Studios.Studio1
             return movies;
         }
 
+        public async Task<StudioMovie> GetMovieDetailsAsync(string movieUri)
+        {
+            var requestUri = movieUri;
+            var config = Configuration.Default.WithDefaultLoader();
+            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+
+            Console.WriteLine($"Getting: {requestUri}");
+
+            var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+
+            var duration = document.QuerySelector(".scene-length").TextContent;
+            duration = Regex.Match(duration, @"\d+").Value;
+
+            var description = document.QuerySelector("#scene-description").QuerySelector("p");
+            var child = description.QuerySelector(".collapse");
+
+            if (child != null)
+            {
+                description.RemoveChild(description.QuerySelector(".collapse"));
+            }
+
+            var categories = document.QuerySelector(".tag-card-container")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
+
+            var movie = new StudioMovie
+            {
+                Description = description.TextContent.Trim(),
+                Duration = TimeSpan.FromMinutes(int.Parse(duration)),
+                Categories = categories
+            };
+
+            return movie;
+        }
+
         private StudioMovie ParseElement(IElement element)
         {
             var movie = new StudioMovie();
@@ -61,20 +98,14 @@ namespace WebApp.Studios.Studio1
 
             var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
 
-            movie.Models = models?.Select(e => new StudioModel
-            {
-                Name = e
-            });
+            movie.Models = models;
 
             movie.Attachments = link?.Children.Where(e => e.LocalName == "img").Select(e =>
             {
                 var value = e.GetAttribute("data-src");
                 var uri = value.StartsWith("//", StringComparison.Ordinal) ? $"http://{value.Substring("//".Length)}" : value;
 
-                return new StudioAttachment
-                {
-                    Uri = uri
-                };
+                return uri;
             }).ToArray();
 
             string timeValue;
@@ -115,21 +146,15 @@ namespace WebApp.Studios.Studio1
 
             var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
 
-            movie.Models = models?.Select(e => new StudioModel
-            {
-                Name = e
-            });
+            movie.Models = models;
 
             var imgSrc = a?.QuerySelector("img")?.GetAttribute("data-src");
 
             if (!string.IsNullOrEmpty(imgSrc))
             {
-                movie.Attachments = new List<StudioAttachment>
+                movie.Attachments = new List<string>
                 {
-                    new StudioAttachment
-                    {
-                        Uri = imgSrc.StartsWith("//") ? $"https://{imgSrc}" : imgSrc
-                    }
+                    imgSrc.StartsWith("//") ? $"https://{imgSrc}" : imgSrc
                 };
             }
 

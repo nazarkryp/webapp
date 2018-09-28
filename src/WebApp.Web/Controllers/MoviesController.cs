@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +8,7 @@ using WebApp.Services.Movies;
 
 namespace WebApp.Web.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
@@ -26,27 +24,17 @@ namespace WebApp.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> GetMoviesAsync([FromQuery] MoviesQueryFilter queryFilter)
         {
-            var watch = Stopwatch.StartNew();
+            var page = await _movieService.GetMoviesAsync(queryFilter);
 
-            try
-            {
-                var page = await _movieService.GetMoviesAsync(queryFilter);
-
-                watch.Stop();
-                return Ok(page);
-            }
-            catch (Exception e)
-            {
-                watch.Stop();
-                Console.WriteLine(e);
-                throw;
-            }
+            return Ok(page);
         }
 
         [HttpGet("{movieId:int}")]
         public async Task<IActionResult> GetMovieAsync(int movieId)
         {
-            return Ok(new { movieId });
+            var movie = await _movieService.GetMovieAsync(movieId);
+
+            return Ok(movie);
         }
     }
 }

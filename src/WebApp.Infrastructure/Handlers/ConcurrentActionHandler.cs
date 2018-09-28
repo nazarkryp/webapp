@@ -36,7 +36,7 @@ namespace WebApp.Infrastructure.Handlers
             return ForeachAsync(source, action, maxDegreeOfParallelism, null);
         }
 
-        public async Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task<TSource>> action, int maxDegreeOfParallelism, Func<Task> iterationCompleted)
+        public async Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task> action, int maxDegreeOfParallelism, Func<Task> iterationCompleted)
         {
             if (maxDegreeOfParallelism < 1)
             {

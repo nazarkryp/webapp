@@ -11,6 +11,7 @@ namespace WebApp.Repositories.EntityFramework.Binding.Mapping
         public MovieProfile()
         {
             CreateMap<Movie, Binding.Models.Movie>()
+                .ForMember(e => e.StudioId, opt => opt.Condition(e => e.Studio != null))
                 .ForMember(e => e.StudioId, opt => opt.MapFrom(e => e.Studio.StudioId))
                 .ForMember(e => e.Studio, opt => opt.Ignore())
                 .ForMember(e => e.MovieModels, opt => opt.ResolveUsing(e =>
@@ -23,9 +24,22 @@ namespace WebApp.Repositories.EntityFramework.Binding.Mapping
                             Name = m.Name
                         }
                     });
+                }))
+                .ForMember(e => e.MovieCategories, opt => opt.Condition(e => e.Categories != null && e.Categories.Any()))
+                .ForMember(e => e.MovieCategories, opt => opt.ResolveUsing(e =>
+                {
+                    return e.Categories?.Select(m => new Binding.Models.MovieCategory
+                    {
+                        MovieId = e.MovieId,
+                        Category = new Binding.Models.Category
+                        {
+                            Name = m.Name
+                        }
+                    });
                 }));
 
             CreateMap<Binding.Models.Movie, Movie>()
+                .ForMember(e => e.Categories, opt => opt.MapFrom(e => e.MovieCategories.Select(mc => mc.Category)))
                 .ForMember(e => e.Models, opt => opt.MapFrom(e => e.MovieModels.Select(mm => mm.Model)));
         }
     }

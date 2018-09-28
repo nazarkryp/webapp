@@ -11,10 +11,11 @@ namespace WebApp.Mapping.AutoMapper.Profiles
         {
             CreateMap<StudioMovie, Movie>()
                 .ForMember(e => e.Models, opt => opt.MapFrom(e => e.Models))
+                .ForMember(e => e.Categories, opt => opt.MapFrom(e => e.Categories))
                 .ForMember(e => e.MovieId, opt => opt.Ignore())
                 .ForMember(e => e.Studio, opt => opt.Ignore());
 
-            CreateMap<Domain.Entities.Movie, Dto.Movies.Movie>();
+            CreateMap<Movie, Dto.Movies.Movie>();
         }
     }
 }

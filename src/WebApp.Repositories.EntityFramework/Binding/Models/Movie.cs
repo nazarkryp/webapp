@@ -24,5 +24,7 @@ namespace WebApp.Repositories.EntityFramework.Binding.Models
         public ICollection<Attachment> Attachments { get; set; }
 
         public ICollection<MovieModel> MovieModels { get; set; }
+
+        public ICollection<MovieCategory> MovieCategories { get; set; }
     }
 }

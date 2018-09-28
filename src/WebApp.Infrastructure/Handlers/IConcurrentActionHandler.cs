@@ -13,9 +13,7 @@ namespace WebApp.Infrastructure.Handlers
 
         Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task> action, int maxDegreeOfParallelism);
 
-        Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task<TSource>> action, int maxDegreeOfParallelism);
-
-        Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task<TSource>> action, int maxDegreeOfParallelism, Func<Task> iterationCompleted);
+        Task ForeachAsync<TSource>(IEnumerable<TSource> source, Func<TSource, Task> action, int maxDegreeOfParallelism, Func<Task> iterationCompleted);
 
         //Task ForEachAsync<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, Task<TResult>> body, int maxDegreeOfParallelism, Func<List<TResult>, Task> iterationCompleted);
     }
