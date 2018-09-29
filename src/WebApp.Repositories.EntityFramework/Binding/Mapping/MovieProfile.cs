@@ -20,28 +20,27 @@ namespace WebApp.Repositories.EntityFramework.Binding.Mapping
                 .ForMember(e => e.Studio, opt => opt.Ignore())
                 .ForMember(e => e.MovieModels, opt => opt.ResolveUsing(e =>
                 {
-                    return e.Models.Select(m => new Binding.Models.MovieModel
+                    return e.Models?.Select(m => new Binding.Models.MovieModel
                     {
                         MovieId = e.MovieId,
                         Model = new Binding.Models.Model
                         {
                             Name = m.Name
                         }
-                    });
+                    }) ?? Enumerable.Empty<Binding.Models.MovieModel>();
                 }))
                 .ForMember(e => e.MovieCategories, opt =>
                 {
-                    opt.Condition(e => e.Categories != null && e.Categories.Any());
                     opt.ResolveUsing(e =>
                     {
-                        return e.Categories.Select(m => new Binding.Models.MovieCategory
+                        return e.Categories?.Select(m => new Binding.Models.MovieCategory
                         {
                             MovieId = e.MovieId,
                             Category = new Binding.Models.Category
                             {
                                 Name = m.Name
                             }
-                        });
+                        }) ?? Enumerable.Empty<Binding.Models.MovieCategory>();
                     });
                 });
 

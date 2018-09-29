@@ -33,7 +33,8 @@ namespace WebApp.Services.Movies
                 Page = queryFilter?.Page,
                 Size = queryFilter?.Size,
                 SearchQuery = queryFilter?.Search,
-                StudioIds = queryFilter?.StudioId
+                StudioIds = queryFilter?.StudioId,
+                Categories = queryFilter?.Categories
             };
 
             var page = await _movies.GetPageAsync(pagingFilter);

@@ -66,6 +66,8 @@ namespace WebApp.Jobs.Sync.Jobs
 
             await _concurrentActionHandler.ForAsync(async pageIndex =>
             {
+                Console.WriteLine($"Retrieving {studioClient.StudioName}. Page {pageIndex}.");
+
                 var movies = await studioClient.GetMoviesAsync(pageIndex);
                 buffer.TryAdd(pageIndex, movies);
             }, startFrom, 0, _syncConfiguration.MaxDegreeOfParallelism, async () => { syncDetails = await SaveAsync(buffer, syncDetails, studioId); });

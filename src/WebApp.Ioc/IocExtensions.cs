@@ -14,6 +14,7 @@ using WebApp.Security.Configuration;
 using WebApp.Security.Google;
 using WebApp.Security.Google.Configuration;
 using WebApp.Services;
+using WebApp.Services.Categories;
 using WebApp.Services.Movies;
 using WebApp.Services.Studios;
 using WebApp.Storage;
@@ -41,6 +42,7 @@ namespace WebApp.Ioc
             services.AddTransient<IStudioRepository, StudioRepository>();
             services.AddTransient<IMovieRepository, MovieRepository>();
             services.AddTransient<ISyncDetailsRepository, SyncDetailsRepository>();
+            services.AddTransient<ICategoryRepository, CategoryRepository>();
             services.AddTransient<IDbContext, WebAppDbContext>();
         }
 
@@ -49,6 +51,7 @@ namespace WebApp.Ioc
             services.AddTransient<IMediaService, MediaService>();
             services.AddTransient<IMovieService, MovieService>();
             services.AddTransient<IStudioService, StudioService>();
+            services.AddTransient<ICategoryService, CategoryService>();
         }
 
         public static void ConfigureCloudinary(this IServiceCollection services)

@@ -7,12 +7,18 @@ using System.Threading.Tasks;
 
 using AngleSharp;
 using AngleSharp.Dom;
+using AngleSharp.Parser.Html;
 
 namespace WebApp.Studios.Studio1
 {
-    public class Studio1Client : IStudioClient
+    public class Studio1Client : StudioClient, IStudioClient
     {
         private const string BaseAddress = "https://tour.brazzersnetwork.com";
+
+        public Studio1Client()
+            : base(true)
+        {
+        }
 
         public string StudioName => "Brazzers";
 
@@ -39,8 +45,6 @@ namespace WebApp.Studios.Studio1
             //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
             //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
 
-            Console.WriteLine($"Getting: {requestUri}");
-
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
             var items = document.All.Where(element => element.LocalName == "div" && element.ClassList.Contains("release-card-wrap"));
 
@@ -55,10 +59,11 @@ namespace WebApp.Studios.Studio1
             var config = Configuration.Default.WithDefaultLoader();
             //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
             //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+            //var document = await BrowsingContext.New(config).OpenAsync(requestUri);
 
-            Console.WriteLine($"Getting: {requestUri}");
-
-            var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+            var content = await GetAsync(requestUri);
+            var parser = new HtmlParser();
+            var document = await parser.ParseAsync(content);
 
             var duration = document.QuerySelector(".scene-length").TextContent;
             duration = Regex.Match(duration, @"\d+").Value;
@@ -71,13 +76,12 @@ namespace WebApp.Studios.Studio1
                 description.RemoveChild(description.QuerySelector(".collapse"));
             }
 
-            var categories = document.QuerySelector(".tag-card-container")?.QuerySelectorAll("a")?.Select(e => e.TextContent).Distinct();
-
             var movie = new StudioMovie
             {
-                Description = description.TextContent.Trim(),
                 Duration = TimeSpan.FromMinutes(int.Parse(duration)),
-                Categories = categories
+                Description = description.TextContent.Trim(),
+                Categories = document.QuerySelector(".tag-card-container")?.QuerySelectorAll("a")?.Select(e => e.TextContent).Distinct(),
+                Models = document.QuerySelector(".related-model").QuerySelectorAll("a").Select(e => e.TextContent).Distinct()
             };
 
             return movie;

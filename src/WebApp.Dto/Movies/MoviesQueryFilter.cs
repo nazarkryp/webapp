@@ -7,5 +7,7 @@ namespace WebApp.Dto.Movies
         public int[] StudioId { get; set; }
 
         public string Search { get; set; }
+
+        public string[] Categories { get; set; }
     }
 }

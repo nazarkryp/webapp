@@ -7,5 +7,7 @@ namespace WebApp.Repositories.Movies
         public int[] StudioIds { get; set; }
 
         public string SearchQuery { get; set; }
+
+        public string[] Categories { get; set; }
     }
 }

@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Dom.Html;
+using AngleSharp.Parser.Html;
 
 namespace WebApp.Studios.Studio2
 {
-    public class Studio2Client : IStudioClient
+    public class Studio2Client : StudioClient, IStudioClient
     {
         private const string BaseAddress = "https://tour.naughtyamerica.com";
+
+        public Studio2Client()
+        : base(true)
+        {
+        }
 
         public string StudioName => "Naughty America";
 
@@ -23,8 +30,11 @@ namespace WebApp.Studios.Studio2
             //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
             //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
 
-            var config = Configuration.Default.WithDefaultLoader();
-            var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+            //var config = Configuration.Default.WithDefaultLoader();
+            //var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+            var content = await GetAsync(requestUri);
+            var parser = new HtmlParser();
+            var document = await parser.ParseAsync(content);
 
             var last = document.QuerySelectorAll(".pagination a").LastOrDefault();
             var href = last?.GetAttribute("href");
@@ -44,7 +54,10 @@ namespace WebApp.Studios.Studio2
 
             Console.WriteLine($"Getting: {requestUri}");
 
-            var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+            //var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+            var content = await GetAsync(requestUri);
+            var parser = new HtmlParser();
+            var document = await parser.ParseAsync(content);
             //var items = document.All.Where(element => element.LocalName == "div" && element.ClassList.Contains("grid-item")).ToList();
 
             var items = document.QuerySelectorAll(".scene-item").ToList();
@@ -59,9 +72,48 @@ namespace WebApp.Studios.Studio2
             return movies;
         }
 
-        public Task<StudioMovie> GetMovieDetailsAsync(string movieUri)
+        public async Task<StudioMovie> GetMovieDetailsAsync(string requestUri)
         {
-            throw new NotImplementedException();
+            // categories grey-text
+            var config = Configuration.Default.WithDefaultLoader();
+            //var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+            var content = await GetAsync(requestUri);
+            var parser = new HtmlParser();
+            var document = await parser.ParseAsync(content);
+
+            var description = document.QuerySelector(".synopsis.grey-text");
+            var child = description.QuerySelector(".light-grey-text");
+
+            if (child != null)
+            {
+                description.RemoveChild(child);
+            }
+
+            var duration = TimeSpan.Zero;
+            var durationElement = document.QuerySelector(".duration.light-grey-text")?.TextContent;
+            if (durationElement != null)
+            {
+                durationElement = Regex.Match(durationElement, @"\d+").Value;
+                duration = TimeSpan.FromMinutes(int.Parse(durationElement));
+            }
+
+            var attachments = document.QuerySelector(".contain-scene-images.desktop-only")?.QuerySelectorAll("img")
+                .Select(e =>
+                {
+                    var src = e.GetAttribute("src");
+                    return src.StartsWith("//") ? $"https:{src}" : src;
+                });
+
+            var studioMovie = new StudioMovie
+            {
+                Duration = duration,
+                Description = description?.TextContent?.Trim(),
+                Categories = document.QuerySelector(".categories.grey-text")?.QuerySelectorAll("a.cat-tag")?.Select(e => e.TextContent).Distinct(),
+                Models = document.QuerySelectorAll(".scene-title.grey-text")?.Select(e => e.TextContent).Distinct(),
+                Attachments = attachments
+            };
+
+            return studioMovie;
         }
 
         private StudioMovie ParseElement(IElement element)
