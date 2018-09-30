@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,16 @@ namespace WebApp.Repositories.EntityFramework.Repositories
         public async Task<IEnumerable<Category>> FindCategoriesAsync()
         {
             var categories = await Context.Set<Binding.Models.Category>().ToListAsync();
+
+            return _mapper.Map<IEnumerable<Category>>(categories);
+        }
+
+        public async Task<IEnumerable<Category>> FindTopCategoriesAsync()
+        {
+            var categories = await Context.Set<Binding.Models.TopCategory>()
+                .Include(e => e.Category)
+                .Select(e => e.Category)
+                .ToListAsync();
 
             return _mapper.Map<IEnumerable<Category>>(categories);
         }

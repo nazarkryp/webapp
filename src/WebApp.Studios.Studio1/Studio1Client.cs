@@ -13,20 +13,21 @@ namespace WebApp.Studios.Studio1
 {
     public class Studio1Client : StudioClient, IStudioClient
     {
-        private const string BaseAddress = "https://tour.brazzersnetwork.com";
+        private const string BaseAddress = Studio1ClientConstants.BaseAddress;
+        private const string UpdatesStringFormat = Studio1ClientConstants.UpdatesStringFormat;
 
         public Studio1Client()
             : base(true)
         {
         }
 
-        public string StudioName => "Brazzers";
+        public string StudioName => Studio1ClientConstants.StudioName;
 
         public async Task<int> GetPagesCountAsync()
         {
-            var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/1/";
+            var requestUri = string.Format(UpdatesStringFormat, BaseAddress, 1);
             //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+            //requestUri = $"/v1/proxy?requestUri=base64_{encryptedUri}";
 
             var config = Configuration.Default.WithDefaultLoader();
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
@@ -40,10 +41,10 @@ namespace WebApp.Studios.Studio1
 
         public async Task<IEnumerable<StudioMovie>> GetMoviesAsync(int page)
         {
-            var requestUri = $"{BaseAddress}/videos/all-sites/all-pornstars/all-categories/alltime/bydate/{page}/";
+            var requestUri = string.Format(UpdatesStringFormat, BaseAddress, page);
             var config = Configuration.Default.WithDefaultLoader();
             //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
+            //requestUri = $"/v1/proxy?requestUri=base64_{encryptedUri}";
 
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
             var items = document.All.Where(element => element.LocalName == "div" && element.ClassList.Contains("release-card-wrap"));
@@ -53,17 +54,10 @@ namespace WebApp.Studios.Studio1
             return movies;
         }
 
-        public async Task<StudioMovie> GetMovieDetailsAsync(string movieUri)
+        public async Task<StudioMovie> ParseDetailsAsync(string html)
         {
-            var requestUri = movieUri;
-            var config = Configuration.Default.WithDefaultLoader();
-            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            //requestUri = $"https://thephotocloud.com/v1/proxy?requestUri=base64_{encryptedUri}";
-            //var document = await BrowsingContext.New(config).OpenAsync(requestUri);
-
-            var content = await GetAsync(requestUri);
             var parser = new HtmlParser();
-            var document = await parser.ParseAsync(content);
+            var document = await parser.ParseAsync(html);
 
             var duration = document.QuerySelector(".scene-length").TextContent;
             duration = Regex.Match(duration, @"\d+").Value;
@@ -76,15 +70,34 @@ namespace WebApp.Studios.Studio1
                 description.RemoveChild(description.QuerySelector(".collapse"));
             }
 
+            var categories = document.QuerySelector(".tag-card-container")?.QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct().ToList();
+
+            if (categories == null || !categories.Any())
+            {
+                categories = new List<string> { "Other" };
+            }
+
             var movie = new StudioMovie
             {
                 Duration = TimeSpan.FromMinutes(int.Parse(duration)),
                 Description = description.TextContent.Trim(),
-                Categories = document.QuerySelector(".tag-card-container")?.QuerySelectorAll("a")?.Select(e => e.TextContent).Distinct(),
-                Models = document.QuerySelector(".related-model").QuerySelectorAll("a").Select(e => e.TextContent).Distinct()
+                Categories = categories,
+                Models = document.QuerySelector(".related-model").QuerySelectorAll("a").Select(e => e.TextContent.Trim()).Distinct()
             };
 
             return movie;
+        }
+
+        public async Task<StudioMovie> GetMovieDetailsAsync(string requestUri)
+        {
+            //var config = Configuration.Default.WithDefaultLoader();
+            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            //requestUri = $"/v1/proxy?requestUri=base64_{encryptedUri}";
+            //var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+
+            var content = await GetAsync(requestUri);
+
+            return await ParseDetailsAsync(content);
         }
 
         private StudioMovie ParseElement(IElement element)
@@ -98,9 +111,7 @@ namespace WebApp.Studios.Studio1
             movie.Uri = $"{BaseAddress}{link?.GetAttribute("href")}";
             movie.Description = element.QuerySelector(".scene-postcard-description")?.TextContent?.Trim();
 
-            var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent).Distinct();
-
-            movie.Models = models;
+            movie.Models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct();
 
             movie.Attachments = link?.Children.Where(e => e.LocalName == "img").Select(e =>
             {
@@ -146,7 +157,7 @@ namespace WebApp.Studios.Studio1
             movie.Title = a?.GetAttribute("title");
             movie.Uri = $"{BaseAddress}{a?.GetAttribute("href")}";
 
-            var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent);
+            var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct();
 
             movie.Models = models;
 

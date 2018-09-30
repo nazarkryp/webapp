@@ -70,5 +70,6 @@
     <Build Include="dbo\Tables\MovieModels.sql" />
     <Build Include="dbo\Tables\MovieCategories.sql" />
     <Build Include="dbo\Tables\Categories.sql" />
+    <Build Include="dbo\Tables\TopCategories.sql" />
   </ItemGroup>
 </Project>

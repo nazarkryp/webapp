@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -16,7 +15,7 @@ namespace WebApp.Repositories.EntityFramework.Extensions
              this IQueryable<TEntity> source,
              string orderBy,
              int page,
-             int size) where TEntity : class
+             int size)
         {
             if (string.IsNullOrEmpty(orderBy))
             {
@@ -33,11 +32,8 @@ namespace WebApp.Repositories.EntityFramework.Extensions
                 throw new ArgumentException(nameof(page));
             }
 
-            var total = source.Count();
-
-            var query = source.OrderBy(orderBy).Skip((page - 1) * size).Take(size);
-
-            var filtered = query is IAsyncEnumerable<TEntity> ? await query.ToListAsync() : query.ToList();
+            var total = await source.CountAsync();
+            var filtered = await source.OrderBy(orderBy).Skip((page - 1) * size).Take(size).ToListAsync();
 
             return new Page<TEntity>
             {
@@ -55,7 +51,8 @@ namespace WebApp.Repositories.EntityFramework.Extensions
             var parameter = Expression.Parameter(type, "p");
             var propertyAccess = Expression.MakeMemberAccess(parameter, property);
             var orderByExp = Expression.Lambda(propertyAccess, parameter);
-            MethodCallExpression resultExp = Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { type, property.PropertyType }, source.Expression, Expression.Quote(orderByExp));
+            var resultExp = Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { type, property.PropertyType }, source.Expression, Expression.Quote(orderByExp));
+
             return source.Provider.CreateQuery<T>(resultExp);
         }
     }

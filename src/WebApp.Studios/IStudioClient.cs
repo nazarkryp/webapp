@@ -12,5 +12,7 @@ namespace WebApp.Studios
         Task<IEnumerable<StudioMovie>> GetMoviesAsync(int page);
 
         Task<StudioMovie> GetMovieDetailsAsync(string movieUri);
+
+        Task<StudioMovie> ParseDetailsAsync(string html);
     }
 }

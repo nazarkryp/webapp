@@ -2,12 +2,12 @@
 {
     public class CloudinaryConfiguration : ICloudinaryConfiguration
     {
-        public string CloudName => "dpfmyl1mn";
+        public string CloudName => "";
 
-        public string ClientSecret => "UqMSXcJ0GfjZgfTzVkKOwXUig5A";
+        public string ClientSecret => "";
 
-        public string ClientKey => "734214412279239";
+        public string ClientKey => "";
 
-        public string Directory => "girls";
+        public string Directory => "";
     }
 }

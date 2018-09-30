@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Newtonsoft.Json;
+
 using WebApp.Dto.Attachments;
 using WebApp.Dto.Categories;
 using WebApp.Dto.Models;
@@ -24,10 +26,13 @@ namespace WebApp.Dto.Movies
 
         public Studio Studio { get; set; }
 
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IEnumerable<Attachment> Attachments { get; set; }
 
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IEnumerable<Model> Models { get; set; }
 
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IEnumerable<Category> Categories { get; set; }
     }
 }

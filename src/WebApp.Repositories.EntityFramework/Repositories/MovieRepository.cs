@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
+
 using WebApp.Domain.Entities;
 using WebApp.Mapping;
 using WebApp.Repositories.Common;
@@ -37,7 +38,8 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 .Include(e => e.MovieModels)
                 .Include(e => e.MovieCategories)
                 //.Include(e => e.Attachments)
-                .Where(e => e.StudioId == studioId && !e.MovieCategories.Any()).OrderByDescending(e => e.MovieId).ToListAsync();
+                .Where(e => e.StudioId == studioId && !e.MovieCategories.Any()).OrderByDescending(e => e.MovieId)
+                .ToListAsync();
 
             return _mapper.Map<IEnumerable<Movie>>(movies);
         }
@@ -51,30 +53,10 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 query = query.Where(e => e.Title.ToLower().Contains(pagingFilter.SearchQuery) || e.Description.ToLower().Contains(pagingFilter.SearchQuery));
             }
 
-            if (pagingFilter?.Categories != null && pagingFilter?.Categories.Length > 0)
+            if (pagingFilter?.Studios != null && pagingFilter.Studios.Length > 0)
             {
-                var categoriesNames = pagingFilter.Categories.Select(e => e.ToLower()).ToArray();
-                var categories = await Context.Set<Binding.Models.Category>().Where(e => categoriesNames.Contains(e.Name.ToLower())).ToListAsync();
-
-                if (categories == null || !categories.Any())
-                {
-                    return new Page<Movie>();
-                }
-
-                var categoriesIds = categories.Select(e => e.CategoryId).ToArray();
-                query = query.Where(e => e.MovieCategories.Count(c => categoriesIds.Contains(c.CategoryId)) == categoriesIds.Length);
+                query = query.Where(e => pagingFilter.Studios.Distinct().Contains(e.StudioId));
             }
-
-            if (pagingFilter?.StudioIds != null && pagingFilter.StudioIds.Length > 0)
-            {
-                query = query.Where(e => pagingFilter.StudioIds.Distinct().Contains(e.StudioId));
-            }
-
-            //query = query
-            //    .Include(e => e.Studio)
-            //    .Include(e => e.Attachments)
-            //    .Include(e => e.MovieModels)
-            //    .ThenInclude(e => e.Model);
 
             query = query
                 .Include(e => e.Studio)
@@ -91,15 +73,74 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             };
         }
 
+        public async Task<Page<Movie>> GetCategoriesMoviesAsync(MoviesPagingFilter pagingFilter)
+        {
+            if (pagingFilter?.Categories == null || pagingFilter.Categories.Length < 1)
+            {
+                return new Page<Movie>();
+            }
+
+            var categoriesNames = pagingFilter.Categories.Select(e => e.ToLower()).ToArray();
+
+            var categories = await Context.Set<Binding.Models.Category>().Where(e => categoriesNames.Contains(e.Name.ToLower())).ToListAsync();
+
+            if (categories.Count < 1)
+            {
+                return new Page<Movie>();
+            }
+
+            var categoriesIds = categories.Select(e => e.CategoryId).ToArray();
+
+            //var query = Context.Set<Binding.Models.MovieCategory>()
+            //    .Join(Context.Set<Binding.Models.Movie>(), mc => mc.MovieId, m => m.MovieId, (category, movie) => new { category, movie })
+            //    .GroupBy(cmm => cmm.movie)
+            //    .Where(grouped => grouped.Count(x => categoriesIds.Contains(x.category.CategoryId)) == categoriesIds.Count())
+            //    .Select(cm => cm.Key);
+
+            int[] idsQuery;
+
+            if (pagingFilter?.Studios != null && pagingFilter.Studios.Length > 0)
+            {
+                idsQuery = await Context.Set<Binding.Models.MovieCategory>()
+                    .Where(e => pagingFilter.Studios.Distinct().Contains(e.Movie.StudioId))
+                    .GroupBy(cmm => cmm.MovieId)
+                    .Where(grouped => grouped.Count(x => categoriesIds.Contains(x.CategoryId)) == categoriesIds.Count())
+                    .Select(cm => cm.Key).ToArrayAsync();
+            }
+            else
+            {
+                idsQuery = await Context.Set<Binding.Models.MovieCategory>()
+                    .GroupBy(cmm => cmm.MovieId)
+                    .Where(grouped => grouped.Count(x => categoriesIds.Contains(x.CategoryId)) == categoriesIds.Count())
+                    .Select(cm => cm.Key).ToArrayAsync();
+            }
+
+
+            var query = Context.Set<Binding.Models.Movie>()
+                .Include(e => e.Attachments)
+                .Include(e => e.Studio)
+                .Where(e => idsQuery.Contains(e.MovieId));
+
+            var page = await GetPageAsync(query, pagingFilter.OrderBy, pagingFilter.Page, pagingFilter.Size);
+
+            return new Page<Movie>
+            {
+                Size = page.Size,
+                Data = _mapper.Map<IEnumerable<Movie>>(page.Data),
+                Offset = page.Offset,
+                Total = page.Total
+            };
+        }
+
         public async Task<Movie> FindMovieAsync(int movieId)
         {
             var movie = await Context.Set<Binding.Models.Movie>()
                 .Include(e => e.Studio)
                 .Include(e => e.Attachments)
                 .Include(e => e.MovieModels)
-                .ThenInclude(e => e.Model)
+                    .ThenInclude(e => e.Model)
                 .Include(e => e.MovieCategories)
-                .ThenInclude(e => e.Category)
+                    .ThenInclude(e => e.Category)
                 .FirstOrDefaultAsync(e => e.MovieId == movieId);
 
             return _mapper.Map<Movie>(movie);
@@ -126,27 +167,12 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             var incommingCategories = source.Where(e => e.Categories != null && e.Categories.Any()).SelectMany(e => e.Categories);
             var existingCategories = await SaveCategoriesAsync(incommingCategories);
 
-            //var existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
-
-            //var models = source.SelectMany(e => e.Models).Where(e => existingModels.All(existing => !CompareNames(e.Name, existing.Name))).ToList();
-
-            //var modelsToSave = _mapper.Map<IEnumerable<Binding.Models.Model>>(models).ToList();
-
-            //if (modelsToSave.Any())
-            //{
-            //    Context.Set<Binding.Models.Model>().AddRange(modelsToSave);
-
-            //    await SaveChangesAsync();
-
-            //    existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
-            //}
-
             var moviesToInsert = _mapper.Map<IList<Binding.Models.Movie>>(movies).ToList();
 
             MapModelsReferences(source, moviesToInsert, existingModels);
             MapCategoriesReferences(source, moviesToInsert, existingCategories);
 
-            await Context.Set<Binding.Models.Movie>().AddRangeAsync(moviesToInsert);
+            Context.Set<Binding.Models.Movie>().AddRange(moviesToInsert);
 
             await SaveChangesAsync();
 
@@ -175,7 +201,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 movieCategory.Category = null;
             }
 
-            Context.Set<Binding.Models.Movie>().Update(movieToUpdate);
+            //Context.Set<Binding.Models.Movie>().Update(movieToUpdate);
 
             await Context.SaveChangesAsync();
 
@@ -194,6 +220,12 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
             var moviesToUpdate = Context.Set<Binding.Models.Movie>().Local.Where(e => source.Any(m => m.MovieId == e.MovieId)).ToList();
 
+            if (!moviesToUpdate.Any())
+            {
+                var moviesToUpdateIds = source.Select(m => m.MovieId);
+                moviesToUpdate = await Context.Set<Binding.Models.Movie>().Where(e => source.Any(m => moviesToUpdateIds.Contains(m.MovieId))).ToListAsync();
+            }
+
             MapCategoriesReferences(source, moviesToUpdate, existingCategories);
             MapModelsReferences(source, moviesToUpdate, existingModels);
 
@@ -207,14 +239,18 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             var existingCategories = await Context.Set<Binding.Models.Category>().ToListAsync();
             var newCategories = categories.Where(e => !existingCategories.Any(ex => string.Equals(ex.Name, e.Name, StringComparison.CurrentCultureIgnoreCase)));
 
+            newCategories = newCategories
+                .GroupBy(e => e.Name)
+                .Select(group => group.First());
+
             if (newCategories.Any())
             {
                 var categoriesToAdd = _mapper.Map<IEnumerable<Binding.Models.Category>>(newCategories).ToList();
 
-                await Context.Set<Binding.Models.Category>().AddRangeAsync(categoriesToAdd);
+                Context.Set<Binding.Models.Category>().AddRange(categoriesToAdd);
                 await Context.SaveChangesAsync();
 
-                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.ForegroundColor = ConsoleColor.Magenta;
 
                 foreach (var newCategory in categoriesToAdd)
                 {
@@ -233,13 +269,17 @@ namespace WebApp.Repositories.EntityFramework.Repositories
         {
             var existingModels = await Context.Set<Binding.Models.Model>().ToListAsync();
 
-            var newModels = models.Where(e => existingModels.All(existing => !CompareNames(e.Name, existing.Name)));
+            var newModels = models.Where(e => !existingModels.Any(existing => CompareNames(e.Name, existing.Name))).ToList();
+
+            newModels = newModels
+                .GroupBy(e => e.Name)
+                .Select(group => group.First()).ToList();
 
             if (newModels.Any())
             {
                 var modelsToAdd = _mapper.Map<IEnumerable<Binding.Models.Model>>(newModels).ToList();
 
-                await Context.Set<Binding.Models.Model>().AddRangeAsync(modelsToAdd);
+                Context.Set<Binding.Models.Model>().AddRange(modelsToAdd);
                 await Context.SaveChangesAsync();
 
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
@@ -263,6 +303,16 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             {
                 var movie = source.FirstOrDefault(e => e.Uri == targetMovie.Uri);
 
+                if (movie != null)
+                {
+                    targetMovie.Description = movie.Description;
+                }
+
+                if (movie?.Models == null)
+                {
+                    continue;
+                }
+
                 var movieModels = _mapper.Map<IEnumerable<Binding.Models.Model>>(movie.Models).Select(e => new Binding.Models.MovieModel
                 {
                     Model = new Binding.Models.Model
@@ -277,7 +327,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 {
                     var models = movieModels.Where(e => targetMovie.MovieModels.All(existing => !CompareNames(e.Model.Name, existing.Model.Name))).ToList();
 
-                    if (models.Count == 0)
+                    if (models.Count == 0 && targetMovie.MovieId != 0)
                     {
                         skip = true;
                     }
@@ -299,7 +349,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
                 foreach (var movieModel in targetMovie.MovieModels)
                 {
-                    var model = existingModels.FirstOrDefault(e => string.Equals(e.Name, movieModel.Model.Name, StringComparison.CurrentCultureIgnoreCase));
+                    var model = existingModels.FirstOrDefault(e => CompareNames(e.Name, movieModel.Model.Name));
 
                     if (model == null || movieModel.ModelId == model.ModelId)
                     {
@@ -333,6 +383,16 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             {
                 var movie = source.FirstOrDefault(e => e.Uri == targetMovie.Uri);
 
+                if (movie != null)
+                {
+                    targetMovie.Description = movie.Description;
+                }
+
+                if (movie?.Categories == null)
+                {
+                    continue;
+                }
+
                 //_mapper.Map(movie, movieToUpdate);
 
                 var movieCategories = _mapper.Map<IEnumerable<Binding.Models.Category>>(movie.Categories).Select(e => new Binding.Models.MovieCategory
@@ -349,7 +409,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 {
                     var categories = movieCategories.Where(e => targetMovie.MovieCategories.All(mc => mc.Category.Name != e.Category.Name)).ToList();
 
-                    if (categories.Count == 0)
+                    if (categories.Count == 0 && targetMovie.MovieId != 0)
                     {
                         skip = true;
                     }
@@ -386,7 +446,14 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         private static bool CompareNames(string name1, string name2)
         {
-            return name1.ToLower().Split().SequenceEqual(name2.ToLower().Split());
+            if (name1.Contains("Ayumu Kase") && name2.Contains("Ayumu Kase"))
+            {
+
+            }
+
+            var equal = name1.ToLower().Trim().Split().SequenceEqual(name2.ToLower().Trim().Split());
+
+            return equal;
         }
     }
 }

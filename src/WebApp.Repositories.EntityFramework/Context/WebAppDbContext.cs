@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 
 using WebApp.Repositories.EntityFramework.Binding.Models;
 using WebApp.Repositories.EntityFramework.Configurations;
@@ -24,6 +25,8 @@ namespace WebApp.Repositories.EntityFramework.Context
 
         public DbSet<Category> Categories { get; set; }
 
+        public DbSet<TopCategory> TopCategory { get; set; }
+
         public DbSet<MovieCategory> MovieCategories { get; set; }
 
         public DbSet<MovieModel> MovieModels { get; set; }
@@ -37,6 +40,7 @@ namespace WebApp.Repositories.EntityFramework.Context
             builder.ApplyConfiguration(new StudioConfiguration());
             builder.ApplyConfiguration(new MovieConfiguration());
             builder.ApplyConfiguration(new CategoryConfiguration());
+            builder.ApplyConfiguration(new TopCategoryConfiguration());
             builder.ApplyConfiguration(new MovieModelsConfiguration());
             builder.ApplyConfiguration(new ModelConfiguration());
             builder.ApplyConfiguration(new MovieCategoryConfiguration());
@@ -44,9 +48,9 @@ namespace WebApp.Repositories.EntityFramework.Context
             base.OnModelCreating(builder);
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public override void Dispose()
         {
-            optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=WebApp;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False");
+            base.Dispose();
         }
     }
 }

@@ -20,7 +20,7 @@ namespace WebApp.Services.Categories
 
         public async Task<IEnumerable<Category>> GetCategoriesAsync()
         {
-            var categories = await _categories.FindCategoriesAsync();
+            var categories = await _categories.FindTopCategoriesAsync();
 
             return _mapper.Map<IEnumerable<Category>>(categories);
         }

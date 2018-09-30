@@ -11,13 +11,14 @@ namespace WebApp.Studios
 
         protected StudioClient(bool useProxy)
         {
+            //useProxy = false;
             var httpClientHandler = new HttpClientHandler();
 
             if (useProxy)
             {
                 var proxy = new WebProxy
                 {
-                    Address = new Uri($"http://85.236.246.217:32356"),
+                    Address = new Uri($"http://51.68.191.161:3128"),
                     UseDefaultCredentials = false
                 };
 
@@ -31,6 +32,8 @@ namespace WebApp.Studios
         {
             try
             {
+                //uri = "https://api.ipify.org/?format=json";
+
                 var response = await _client.GetAsync(uri);
 
                 var content = await response.Content.ReadAsStringAsync();

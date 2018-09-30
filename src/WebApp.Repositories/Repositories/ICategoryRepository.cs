@@ -8,5 +8,7 @@ namespace WebApp.Repositories.Repositories
     public interface ICategoryRepository
     {
         Task<IEnumerable<Category>> FindCategoriesAsync();
+
+        Task<IEnumerable<Category>> FindTopCategoriesAsync();
     }
 }

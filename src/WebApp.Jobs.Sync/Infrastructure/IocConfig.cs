@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using WebApp.Ioc;
 using WebApp.Jobs.Sync.Configuration;
+using WebApp.Jobs.Sync.Infrastructure.Communication;
 using WebApp.Jobs.Sync.Jobs;
 
 namespace WebApp.Jobs.Sync.Infrastructure
@@ -22,6 +23,9 @@ namespace WebApp.Jobs.Sync.Infrastructure
             services.AddSingleton<ISyncConfiguration, SyncConfiguration>();
             services.AddTransient<IJob, SyncMoviesDataJob>();
             services.AddTransient<IDetailsJob, SyncMovieDetailsDataJob>();
+
+            services.AddTransient<IScrapperConfiguration, ScrapperConfiguration>();
+            services.AddTransient<IScrapperClient, ScrapperClient>();
 
             return services.BuildServiceProvider();
         }

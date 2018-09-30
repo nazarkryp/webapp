@@ -4,7 +4,7 @@ namespace WebApp.Dto.Movies
 {
     public class MoviesQueryFilter : QueryFilter
     {
-        public int[] StudioId { get; set; }
+        public int[] Studios { get; set; }
 
         public string Search { get; set; }
 

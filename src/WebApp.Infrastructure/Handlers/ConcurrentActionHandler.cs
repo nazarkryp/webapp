@@ -43,13 +43,15 @@ namespace WebApp.Infrastructure.Handlers
                 throw new ArgumentException($"Invalid {nameof(maxDegreeOfParallelism)}", nameof(maxDegreeOfParallelism));
             }
 
+            var count = source.Count();
+
             var tasks = new List<Task>();
 
             foreach (var item in source)
             {
                 tasks.Add(action(item));
 
-                if (tasks.Count == maxDegreeOfParallelism)
+                if (tasks.Count == maxDegreeOfParallelism || tasks.Count == count)
                 {
                     await Task.WhenAll(tasks);
 

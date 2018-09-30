@@ -33,11 +33,13 @@ namespace WebApp.Services.Movies
                 Page = queryFilter?.Page,
                 Size = queryFilter?.Size,
                 SearchQuery = queryFilter?.Search,
-                StudioIds = queryFilter?.StudioId,
+                Studios = queryFilter?.Studios,
                 Categories = queryFilter?.Categories
             };
 
-            var page = await _movies.GetPageAsync(pagingFilter);
+            var page = pagingFilter.Categories?.Length > 0
+                ? await _movies.GetCategoriesMoviesAsync(pagingFilter)
+                : await _movies.GetPageAsync(pagingFilter);
 
             var result = new Dto.Common.Page<Movie>
             {
