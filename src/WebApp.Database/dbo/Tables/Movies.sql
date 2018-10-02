@@ -15,5 +15,5 @@ CREATE NONCLUSTERED INDEX [IX_Movies_StudioId]
     ON [dbo].[Movies]([StudioId] ASC);
 
 GO
-CREATE INDEX IX_Movies_Date 
-	ON [dbo].[Movies] ([Date]) INCLUDE ([Title], [Uri], [Description], [Duration], [StudioId])
+CREATE INDEX [IX_Movies_Date]
+	ON [dbo].[Movies] ([Date]) INCLUDE ([MovieId], [Title], [Uri], [Description], [Duration], [StudioId])

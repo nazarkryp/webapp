@@ -2,6 +2,8 @@
 
 using Microsoft.AspNetCore.Mvc;
 
+using WebApp.Dto.Categories;
+using WebApp.Dto.Common;
 using WebApp.Services.Categories;
 
 namespace WebApp.Web.Controllers
@@ -24,7 +26,9 @@ namespace WebApp.Web.Controllers
         {
             var categories = await _categoryService.GetCategoriesAsync();
 
-            return Ok(categories);
+            var response = new DataResponse<Category>(categories);
+
+            return Ok(response);
         }
     }
 }

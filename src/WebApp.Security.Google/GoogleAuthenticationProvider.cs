@@ -76,13 +76,12 @@ namespace WebApp.Security.Google
 
             var claims = new List<Claim>
             {
-                //new Claim(ClaimTypes.NameIdentifier, claimsDictionary[JwtRegisteredClaimNames.Email]),
                 new Claim(ClaimTypes.Name, claimsDictionary[JwtRegisteredClaimNames.Email]),
                 new Claim(JwtRegisteredClaimNames.GivenName, claimsDictionary[JwtRegisteredClaimNames.GivenName]),
                 new Claim(JwtRegisteredClaimNames.FamilyName, claimsDictionary[JwtRegisteredClaimNames.FamilyName]),
                 new Claim(JwtRegisteredClaimNames.Email, claimsDictionary[JwtRegisteredClaimNames.Email]),
                 new Claim(JwtRegisteredClaimNames.Sub, claimsDictionary[JwtRegisteredClaimNames.Sub]),
-                new Claim(JwtRegisteredClaimNames.Exp, claimsDictionary[JwtRegisteredClaimNames.Exp]),
+                new Claim(JwtRegisteredClaimNames.Exp, DateTime.UtcNow.AddMinutes(1).ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, claimsDictionary[JwtRegisteredClaimNames.Iat]),
                 new Claim("picture", claimsDictionary["picture"])
             };

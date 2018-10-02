@@ -49,18 +49,15 @@ namespace WebApp.Web
                     }
                 );
 
-            services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+            services.AddCors(o => o.AddPolicy("CorsPolicy", builder =>
             {
                 builder.AllowAnyOrigin()
                     .AllowAnyMethod()
                     .AllowAnyHeader();
             }));
 
-            services.AddMvc(options =>
-            {
-                ConfigureFilters(options);
-            })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc(ConfigureFilters)
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             //services.AddSpaStaticFiles(configuration =>
             //{
@@ -116,7 +113,7 @@ namespace WebApp.Web
                 return context.HttpContext.Response.WriteAsync(jsonResult);
             });
 
-            app.UseCors("MyPolicy");
+            app.UseCors("CorsPolicy");
 
             app.UseMvc(routes =>
             {
