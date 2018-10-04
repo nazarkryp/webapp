@@ -4,6 +4,7 @@ using System.Text;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
 using Newtonsoft.Json;
-
+using Newtonsoft.Json.Serialization;
 using WebApp.Web.Infrastructure.Filters;
 using WebApp.Web.Infrastructure.Ioc;
 using WebApp.Web.Models;
@@ -80,6 +81,20 @@ namespace WebApp.Web
             //    app.UseExceptionHandler("/Error");
             //    //app.UseHsts();
             //}
+
+            var settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+            app.UseExceptionHandler(e =>
+            {
+                e.Run(context =>
+                {
+                    var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
+                    var errorResult = new ErrorResult((HttpStatusCode)context.Response.StatusCode, exceptionHandlerFeature.Error.Message);
+                    var json = JsonConvert.SerializeObject(errorResult, settings);
+                    context.Response.ContentType = "application/json";
+
+                    return context.Response.WriteAsync(json);
+                });
+            });
 
             app.UseHttpsRedirection();
             app.UseAuthentication();

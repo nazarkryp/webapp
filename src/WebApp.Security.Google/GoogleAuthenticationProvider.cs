@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
@@ -81,7 +82,7 @@ namespace WebApp.Security.Google
                 new Claim(JwtRegisteredClaimNames.FamilyName, claimsDictionary[JwtRegisteredClaimNames.FamilyName]),
                 new Claim(JwtRegisteredClaimNames.Email, claimsDictionary[JwtRegisteredClaimNames.Email]),
                 new Claim(JwtRegisteredClaimNames.Sub, claimsDictionary[JwtRegisteredClaimNames.Sub]),
-                new Claim(JwtRegisteredClaimNames.Exp, DateTime.UtcNow.AddMinutes(1).ToString()),
+                new Claim(JwtRegisteredClaimNames.Exp, DateTime.UtcNow.AddDays(1).ToString(CultureInfo.InvariantCulture)),
                 new Claim(JwtRegisteredClaimNames.Iat, claimsDictionary[JwtRegisteredClaimNames.Iat]),
                 new Claim("picture", claimsDictionary["picture"])
             };
@@ -101,7 +102,7 @@ namespace WebApp.Security.Google
                 issuer: "webapp.com",
                 audience: "webapp.com",
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.Now.AddDays(1),
                 signingCredentials: creds);
 
             var handler = new JwtSecurityTokenHandler();

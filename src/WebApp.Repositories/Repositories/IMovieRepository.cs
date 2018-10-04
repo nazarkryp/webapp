@@ -13,13 +13,13 @@ namespace WebApp.Repositories.Repositories
 
         Task<Page<Movie>> GetPageAsync(MoviesPagingFilter pagingFilter);
 
+        Task<Page<Movie>> FindMoviesAsync(MoviesPagingFilter pagingFilter);
+
         Task<Page<Movie>> GetCategoriesMoviesAsync(MoviesPagingFilter pagingFilter);
 
         Task<Movie> FindMovieAsync(int movieId);
 
         Task<Movie> AddAsync(Movie movie);
-
-        Task<Movie> UpdateAsync(Movie movie);
 
         Task UpdateAsync(IEnumerable<Movie> movies);
 

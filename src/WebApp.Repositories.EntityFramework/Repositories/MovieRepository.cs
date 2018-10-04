@@ -132,6 +132,61 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             };
         }
 
+        public async Task<Page<Movie>> FindMoviesAsync(MoviesPagingFilter pagingFilter)
+        {
+            IQueryable<int> moviesIds;
+
+            if (pagingFilter.Studios?.Length >= 1)
+            {
+                moviesIds = Context.Set<Binding.Models.Movie>()
+                    .Where(e => pagingFilter.Studios.Contains(e.StudioId))
+                    .Select(e => e.MovieId);
+            }
+            else
+            {
+                moviesIds = Context.Set<Binding.Models.Movie>().Select(e => e.MovieId);
+            }
+
+            if (pagingFilter.Models?.Length >= 1)
+            {
+                moviesIds = Context.Set<Binding.Models.MovieModel>()
+                    .Join(moviesIds, e => e.MovieId, e => e, (movie, i) => new { movie, i })
+                    .GroupBy(e => e.i)
+                    .Where(grouped => grouped.Count(x => pagingFilter.Models.Contains(x.movie.ModelId)) == pagingFilter.Models.Count())
+                    .Select(e => e.Key);
+            }
+
+            if (pagingFilter.Categories?.Length >= 1)
+            {
+                var categoriesNames = pagingFilter.Categories.Select(e => e.ToLower()).ToArray();
+                var categories = await Context.Set<Binding.Models.Category>().Where(e => categoriesNames.Contains(e.Name.ToLower())).ToListAsync();
+                var categoriesIds = categories.Select(e => e.CategoryId).ToArray();
+
+                moviesIds = Context.Set<Binding.Models.MovieCategory>()
+                    .Join(moviesIds, e => e.MovieId, e => e, (movie, i) => new { movie, i })
+                    .GroupBy(cmm => cmm.i)
+                    .Where(grouped => grouped.Count(x => categoriesIds.Contains(x.movie.CategoryId)) == categoriesIds.Count())
+                    .Select(cm => cm.Key);
+            }
+
+            var query = Context.Set<Binding.Models.Movie>()
+                .Join(moviesIds, e => e.MovieId, e => e, (movie, i) => new { movie, i })
+                .Select(e => e.movie)
+                .Include(e => e.Attachments)
+                .Include(e => e.Studio)
+                .AsQueryable();
+
+            var page = await GetPageAsync(query, pagingFilter.OrderBy, pagingFilter.Page, pagingFilter.Size);
+
+            return new Page<Movie>
+            {
+                Size = page.Size,
+                Data = _mapper.Map<IEnumerable<Movie>>(page.Data),
+                Offset = page.Offset,
+                Total = page.Total
+            };
+        }
+
         public async Task<Movie> FindMovieAsync(int movieId)
         {
             var movie = await Context.Set<Binding.Models.Movie>()
@@ -157,6 +212,8 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             return _mapper.Map<Movie>(entity);
         }
 
+        #region Add and Update
+
         public async Task<IEnumerable<Movie>> AddRangeAsync(IEnumerable<Movie> movies)
         {
             var source = movies as IList<Movie> ?? movies.ToList();
@@ -177,35 +234,6 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             await SaveChangesAsync();
 
             return _mapper.Map<IEnumerable<Movie>>(moviesToInsert);
-        }
-
-        public async Task<Movie> UpdateAsync(Movie movie)
-        {
-            var existingCategories = await SaveCategoriesAsync(movie.Categories);
-
-            var movieToUpdate = Context.Set<Binding.Models.Movie>().Local.FirstOrDefault(e => e.MovieId == movie.MovieId)
-                                ?? await Context.Set<Binding.Models.Movie>().FirstOrDefaultAsync(e => e.MovieId == movie.MovieId);
-
-            _mapper.Map(movie, movieToUpdate);
-
-            foreach (var movieCategory in movieToUpdate.MovieCategories)
-            {
-                var category = existingCategories.FirstOrDefault(e => string.Equals(e.Name, movieCategory.Category.Name, StringComparison.CurrentCultureIgnoreCase));
-
-                if (category == null)
-                {
-                    continue;
-                }
-
-                movieCategory.CategoryId = category.CategoryId;
-                movieCategory.Category = null;
-            }
-
-            //Context.Set<Binding.Models.Movie>().Update(movieToUpdate);
-
-            await Context.SaveChangesAsync();
-
-            return movie;
         }
 
         public async Task UpdateAsync(IEnumerable<Movie> movies)
@@ -233,6 +261,10 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
             await Context.SaveChangesAsync();
         }
+
+        #endregion
+
+        #region Private Methods
 
         private async Task<IList<Binding.Models.Category>> SaveCategoriesAsync(IEnumerable<Category> categories)
         {
@@ -360,21 +392,6 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                     movieModel.Model = null;
                 }
             }
-
-            //var entityMovieModels = entities.SelectMany(e => e.MovieModels);
-
-            //foreach (var entityMovieModel in entityMovieModels)
-            //{
-            //    var existingModel = existingModels.FirstOrDefault(existing => existing.Name.ToLower().Split().All(e => entityMovieModel.Model.Name.ToLower().Split().Any(n => n == e)));
-
-            //    if (existingModel == null)
-            //    {
-            //        continue;
-            //    }
-
-            //    entityMovieModel.ModelId = existingModel.ModelId;
-            //    entityMovieModel.Model = null;
-            //}
         }
 
         private void MapCategoriesReferences(IList<Movie> source, List<Binding.Models.Movie> target, IList<Binding.Models.Category> existingCategories)
@@ -392,8 +409,6 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 {
                     continue;
                 }
-
-                //_mapper.Map(movie, movieToUpdate);
 
                 var movieCategories = _mapper.Map<IEnumerable<Binding.Models.Category>>(movie.Categories).Select(e => new Binding.Models.MovieCategory
                 {
@@ -446,14 +461,11 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         private static bool CompareNames(string name1, string name2)
         {
-            if (name1.Contains("Ayumu Kase") && name2.Contains("Ayumu Kase"))
-            {
-
-            }
-
             var equal = name1.ToLower().Trim().Split().SequenceEqual(name2.ToLower().Trim().Split());
 
             return equal;
         }
+
+        #endregion
     }
 }

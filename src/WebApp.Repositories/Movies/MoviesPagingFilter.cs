@@ -9,5 +9,7 @@ namespace WebApp.Repositories.Movies
         public string SearchQuery { get; set; }
 
         public string[] Categories { get; set; }
+
+        public int[] Models { get; set; }
     }
 }

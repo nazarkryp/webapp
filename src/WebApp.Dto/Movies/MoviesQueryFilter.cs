@@ -9,5 +9,7 @@ namespace WebApp.Dto.Movies
         public string Search { get; set; }
 
         public string[] Categories { get; set; }
+
+        public int[] Models { get; set; }
     }
 }
