@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -134,6 +135,8 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<Page<Movie>> FindMoviesAsync(MoviesPagingFilter pagingFilter)
         {
+            var watch = Stopwatch.StartNew();
+
             IQueryable<int> moviesIds;
 
             if (pagingFilter.Studios?.Length >= 1)
@@ -149,24 +152,65 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
             if (pagingFilter.Models?.Length >= 1)
             {
+                //moviesIds = Context.Set<Binding.Models.MovieModel>()
+                //    .Join(moviesIds, e => e.MovieId, movieId => movieId, (movie, movieId) => new { movie, movieId })
+                //    .GroupBy(e => e.movieId)
+                //    .Where(grouped => grouped.Count(x => pagingFilter.Models.Contains(x.movie.ModelId)) == pagingFilter.Models.Count())
+                //    .Select(e => e.Key);
+
+                var modelsIds = pagingFilter.Models.ToArray();
+                var models = Context.Set<Binding.Models.Model>().Where(e => modelsIds.Contains(e.ModelId));
+
                 moviesIds = Context.Set<Binding.Models.MovieModel>()
-                    .Join(moviesIds, e => e.MovieId, e => e, (movie, i) => new { movie, i })
-                    .GroupBy(e => e.i)
-                    .Where(grouped => grouped.Count(x => pagingFilter.Models.Contains(x.movie.ModelId)) == pagingFilter.Models.Count())
-                    .Select(e => e.Key);
+                    .Join(moviesIds, mm => mm.MovieId, mid => mid, (mm, mid) => new { mm, mid })
+                    .Join(models, mm => mm.mm.ModelId, m => m.ModelId, (mm, m) => new { mm, m })
+                    .Select(e => e.mm.mid);
             }
 
             if (pagingFilter.Categories?.Length >= 1)
             {
-                var categoriesNames = pagingFilter.Categories.Select(e => e.ToLower()).ToArray();
-                var categories = await Context.Set<Binding.Models.Category>().Where(e => categoriesNames.Contains(e.Name.ToLower())).ToListAsync();
-                var categoriesIds = categories.Select(e => e.CategoryId).ToArray();
+                var lowerCategoriesNames = pagingFilter.Categories.Select(e => e.ToLower()).ToArray();
+                //var categories = await Context.Set<Binding.Models.Category>().Where(e => categoriesNames.Contains(e.Name.ToLower())).ToListAsync();
+                //var categoriesIds = categories.Select(e => e.CategoryId).ToArray();
+
+                //moviesIds = Context.Set<Binding.Models.MovieCategory>()
+                //    .Join(moviesIds, e => e.MovieId, e => e, (movie, i) => new { movie, i })
+                //    .GroupBy(cmm => cmm.i)
+                //    .Where(grouped => grouped.Count(x => categoriesIds.Contains(x.movie.CategoryId)) == categoriesIds.Count())
+                //    .Select(cm => cm.Key);
+
+                //var movieCategories = Context.Set<Binding.Models.MovieCategory>().AsQueryable();
+
+                //var categoriesMovies = await Context.Set<Binding.Models.Movie>()
+                //    .Join(movieCategories, m => m.MovieId, mc => mc.MovieId, (movie, movieCategory) => new { movie, movieCategory })
+                //    .GroupBy(e => new { e.movie.MovieId, e.movie })
+                //    .Where(grouped => grouped.Count(x => categoriesIds.Contains(x.movieCategory.CategoryId)) == categoriesIds.Count())
+                //    .Select(e => e.Key.movie)
+                //    .ToListAsync();
+
+                //var categoriesMovies = await Context.Set<Binding.Models.Movie>()
+                //    .GroupBy(e => new { e.MovieId })
+                //    .Where(grouped => grouped.Any(e => e.MovieCategories.Count(mc => categoriesIds.Contains(mc.CategoryId)) == categoriesIds.Count()))
+                //    .Select(e => e.Key.MovieId)
+                //    .ToListAsync();
+
+                //var categoriesMovies = await Context.Set<Binding.Models.MovieCategory>()
+                //    .GroupBy(e => new {e.MovieId, e.Movie})
+                //    .Where(items => items.Count(mc => categoriesIds.Contains(mc.CategoryId)) == categoriesIds.Length)
+                //    .Select(e => e.Key.Movie).ToListAsync();
+
+                //moviesIds = Context.Set<Binding.Models.MovieCategory>()
+                //    .Join(moviesIds, mc => mc.MovieId, id => id, (mc, movieId) => new { mc, movieId })
+                //    .GroupBy(e => e.movieId)
+                //    .Where(items => items.Count(mcMovieId => categoriesIds.Contains(mcMovieId.mc.CategoryId)) == categoriesIds.Length)
+                //    .Select(e => e.Key);
+
+                var categories = Context.Set<Binding.Models.Category>().Where(e => lowerCategoriesNames.Contains(e.Name.ToLower()));
 
                 moviesIds = Context.Set<Binding.Models.MovieCategory>()
-                    .Join(moviesIds, e => e.MovieId, e => e, (movie, i) => new { movie, i })
-                    .GroupBy(cmm => cmm.i)
-                    .Where(grouped => grouped.Count(x => categoriesIds.Contains(x.movie.CategoryId)) == categoriesIds.Count())
-                    .Select(cm => cm.Key);
+                    .Join(moviesIds, mc => mc.MovieId, mid => mid, (mc, m) => new { mc, m })
+                    .Join(categories, mc => mc.mc.CategoryId, c => c.CategoryId, (mc, c) => new { mc, c })
+                    .Select(e => e.mc.m);
             }
 
             var query = Context.Set<Binding.Models.Movie>()
@@ -177,6 +221,9 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 .AsQueryable();
 
             var page = await GetPageAsync(query, pagingFilter.OrderBy, pagingFilter.Page, pagingFilter.Size);
+
+            watch.Stop();
+            var seconds = watch.Elapsed.Seconds;
 
             return new Page<Movie>
             {
