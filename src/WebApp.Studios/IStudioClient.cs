@@ -13,6 +13,6 @@ namespace WebApp.Studios
 
         Task<StudioMovie> GetMovieDetailsAsync(string movieUri);
 
-        Task<StudioMovie> ParseDetailsAsync(string html);
+        Task<StudioMovie> ParseDetailsAsync(string html, string movieUri);
     }
 }

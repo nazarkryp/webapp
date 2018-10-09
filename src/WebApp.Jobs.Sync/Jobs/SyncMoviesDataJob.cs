@@ -97,7 +97,7 @@ namespace WebApp.Jobs.Sync.Jobs
 
         private async Task AppendMoviesAsync(IStudioClient studioClient, int studioId)
         {
-            var existingMovies = await _movieRepository.LatestAsync(studioId);
+            var existingMovies = await _movieRepository.FindLatestAsync(studioId);
 
             var buffer = new ConcurrentDictionary<int, IEnumerable<Studios.StudioMovie>>();
             var cts = new CancellationTokenSource();
@@ -127,7 +127,7 @@ namespace WebApp.Jobs.Sync.Jobs
                         var moviesToSave = MapMovies(studioMovies, studioId);
                         var saved = await _movieRepository.AddRangeAsync(moviesToSave);
 
-                        Console.WriteLine($"Append success ({saved.Count()} pages);\n\n");
+                        Console.WriteLine($"Append success ({saved.Count()} movies);\n\n");
                     }
                 }
             }, cts.Token);

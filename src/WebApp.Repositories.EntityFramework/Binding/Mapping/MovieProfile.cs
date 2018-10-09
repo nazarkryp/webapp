@@ -14,9 +14,9 @@ namespace WebApp.Repositories.EntityFramework.Binding.Mapping
                 .ForMember(e => e.StudioId, opt =>
                 {
                     opt.Condition(e => e.Studio != null);
-                    opt.MapFrom(e => e.Studio);
+                    opt.MapFrom(e => e.Studio.StudioId);
                 })
-                .ForMember(e => e.StudioId, opt => opt.MapFrom(e => e.Studio.StudioId))
+                .ForMember(e => e.Attachments, opt => opt.MapFrom(e => e.Attachments))
                 .ForMember(e => e.Studio, opt => opt.Ignore())
                 .ForMember(e => e.MovieModels, opt => opt.ResolveUsing(e =>
                 {

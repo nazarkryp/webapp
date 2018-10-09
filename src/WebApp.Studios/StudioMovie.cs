@@ -13,7 +13,7 @@ namespace WebApp.Studios
 
         public DateTime Date { get; set; }
 
-        public TimeSpan Duration { get; set; }
+        public TimeSpan? Duration { get; set; }
 
         public IEnumerable<string> Attachments { get; set; }
 

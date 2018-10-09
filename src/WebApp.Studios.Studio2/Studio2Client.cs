@@ -81,10 +81,10 @@ namespace WebApp.Studios.Studio2
             // var document = await BrowsingContext.New(config).OpenAsync(requestUri);
             var content = await GetAsync(requestUri);
 
-            return await ParseDetailsAsync(content);
+            return await ParseDetailsAsync(content, requestUri);
         }
 
-        public async Task<StudioMovie> ParseDetailsAsync(string html)
+        public async Task<StudioMovie> ParseDetailsAsync(string html, string movieUri)
         {
             var parser = new HtmlParser();
             var document = await parser.ParseAsync(html);
@@ -141,8 +141,7 @@ namespace WebApp.Studios.Studio2
                 movie.Uri = titleElement.Href;
             }
 
-            if (element.Children.FirstOrDefault(child => child.ClassList.Contains("scene-thumb")) is IHtmlAnchorElement
-                thumbElement)
+            if (element.Children.FirstOrDefault(child => child.ClassList.Contains("scene-thumb")) is IHtmlAnchorElement thumbElement)
             {
                 var img = thumbElement.Children.FirstOrDefault(e => e.LocalName == "img") as IHtmlImageElement;
 
@@ -150,9 +149,7 @@ namespace WebApp.Studios.Studio2
                 {
                     movie.Attachments = new List<string>
                     {
-                        img.Source.StartsWith("about://", StringComparison.Ordinal)
-                                ? $"http://{img.Source.Substring("about://".Length)}"
-                                : img.Source
+                        img.Source.StartsWith("about://", StringComparison.Ordinal) ? $"http://{img.Source.Substring("about://".Length)}" : img.Source
                     };
                 }
             }

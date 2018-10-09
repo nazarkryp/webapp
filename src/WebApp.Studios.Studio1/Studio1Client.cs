@@ -54,16 +54,25 @@ namespace WebApp.Studios.Studio1
             return movies;
         }
 
-        public async Task<StudioMovie> ParseDetailsAsync(string html)
+        public async Task<StudioMovie> ParseDetailsAsync(string html, string requestUri)
         {
             var parser = new HtmlParser();
             var document = await parser.ParseAsync(html);
 
-            var duration = document.QuerySelector(".scene-length").TextContent;
-            duration = Regex.Match(duration, @"\d+").Value;
+            var durationElement = document.QuerySelector(".scene-length")?.TextContent;
+            TimeSpan? duration = TimeSpan.Zero;
+            if (!string.IsNullOrEmpty(durationElement))
+            {
+                durationElement = Regex.Match(durationElement, @"\d+").Value;
+                duration = TimeSpan.FromMinutes(int.Parse(durationElement));
+            }
+            else
+            {
+                Console.WriteLine($"Duration in this movie is missing: {requestUri}");
+            }
 
-            var description = document.QuerySelector("#scene-description").QuerySelector("p");
-            var child = description.QuerySelector(".collapse");
+            var description = document.QuerySelector("#scene-description")?.QuerySelector("p");
+            var child = description?.QuerySelector(".collapse");
 
             if (child != null)
             {
@@ -79,8 +88,8 @@ namespace WebApp.Studios.Studio1
 
             var movie = new StudioMovie
             {
-                Duration = TimeSpan.FromMinutes(int.Parse(duration)),
-                Description = description.TextContent.Trim(),
+                Duration = duration,
+                Description = description?.TextContent.Trim(),
                 Categories = categories,
                 Models = document.QuerySelector(".related-model").QuerySelectorAll("a").Select(e => e.TextContent.Trim()).Distinct()
             };
@@ -97,7 +106,7 @@ namespace WebApp.Studios.Studio1
 
             var content = await GetAsync(requestUri);
 
-            return await ParseDetailsAsync(content);
+            return await ParseDetailsAsync(content, requestUri);
         }
 
         private StudioMovie ParseElement(IElement element)

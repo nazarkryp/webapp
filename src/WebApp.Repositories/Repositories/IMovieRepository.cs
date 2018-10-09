@@ -9,17 +9,13 @@ namespace WebApp.Repositories.Repositories
 {
     public interface IMovieRepository
     {
-        Task<IEnumerable<Movie>> LatestAsync(int studioId);
+        Task<IEnumerable<Movie>> FindLatestAsync(int studioId);
 
-        Task<Page<Movie>> GetPageAsync(MoviesPagingFilter pagingFilter);
-
+        Task<IEnumerable<Movie>> FindMoviesWithoutDetailsAsync(int studioId);
+        
         Task<Page<Movie>> FindMoviesAsync(MoviesPagingFilter pagingFilter);
 
-        Task<Page<Movie>> GetCategoriesMoviesAsync(MoviesPagingFilter pagingFilter);
-
         Task<Movie> FindMovieAsync(int movieId);
-
-        Task<Movie> AddAsync(Movie movie);
 
         Task UpdateAsync(IEnumerable<Movie> movies);
 

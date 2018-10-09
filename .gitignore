@@ -35,3 +35,5 @@ msbuild.wrn
 src/WebApp.Database/WebApp.Database.dbmdl
 src/WebApp.Database/WebApp.Database.jfm
 src/WebApp.Web/Client/node_modules/
+src/WebApp.Studios.Studio1/Studio1ClientConstants.cs
+src/WebApp.Studios.Studio2/Studio2ClientConstants.cs

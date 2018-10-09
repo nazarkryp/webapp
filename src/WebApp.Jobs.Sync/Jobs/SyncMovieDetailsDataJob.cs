@@ -45,22 +45,18 @@ namespace WebApp.Jobs.Sync.Jobs
         {
             var stopwatch = Stopwatch.StartNew();
 
-            Console.Write($"Retrieving {studioClient.StudioName} details. ");
+            Console.Write($"'{studioClient.StudioName}': retrieving studio details. ");
             var studio = await _studioRepository.FindAsync(studioClient.StudioName);
-            Console.WriteLine($"Studio ID: {studio.StudioId}");
+            Console.WriteLine($"Studio Id: {studio.StudioId}");
+
             Console.WriteLine("Retrieving movies...");
-            var movies = await _movieRepository.FindAllStudioMoviesAsync(studio.StudioId);
+            var movies = (await _movieRepository.FindMoviesWithoutDetailsAsync(studio.StudioId)).ToList();
+
+            Console.WriteLine($"Retrieved {movies.Count} movies");
             Console.WriteLine("Getting movie details\n");
 
-            //var sex = await _movieRepository.FindMovieAsync(17889);
-
-            //var movies = new List<Movie>
-            //{
-            //    sex
-            //};
-
             var buffer = new ConcurrentBag<Movie>();
-            total += movies.Count();
+            total += movies.Count;
 
             var errorsCount = 0;
             await _concurrentActionHandler.ForeachAsync(movies, async movie =>
@@ -69,13 +65,16 @@ namespace WebApp.Jobs.Sync.Jobs
                 {
                     Interlocked.Increment(ref counter);
                     
-                    var scrapedMovie = await GetMovieAsync(studioClient, movie);
+                    var movieDetails = await GetMovieAsync(studioClient, movie);
 
-                    buffer.Add(scrapedMovie);
-
-                    if (errorsCount > 0)
+                    if (movieDetails != null)
                     {
-                        Interlocked.Decrement(ref errorsCount);
+                        buffer.Add(movieDetails);
+
+                        if (errorsCount > 0)
+                        {
+                            Interlocked.Decrement(ref errorsCount);
+                        }
                     }
                 }
                 catch (Exception e)
@@ -96,29 +95,7 @@ namespace WebApp.Jobs.Sync.Jobs
                 {
                     stopwatch.Stop();
                 }
-            }, 4, () => IterationCompleted(buffer));
-        }
-
-        private async Task<Movie> GetMovieAsync(IStudioClient studioClient, Movie movie)
-        {
-            var content = await _scrapperClient.GetAsync(movie.Uri);
-            var details = await studioClient.ParseDetailsAsync(content);
-
-            movie.Description = details.Description;
-            movie.Categories = _mapper.Map<IEnumerable<Category>>(details.Categories);
-            movie.Duration = details.Duration;
-
-            if (details.Attachments != null)
-            {
-                movie.Attachments = _mapper.Map<IEnumerable<Attachment>>(details.Attachments);
-            }
-
-            if (details.Models != null)
-            {
-                movie.Models = _mapper.Map<IEnumerable<Model>>(details.Models);
-            }
-
-            return movie;
+            }, 1, () => IterationCompleted(buffer));
         }
 
         private async Task IterationCompleted(ConcurrentBag<Movie> buffer)
@@ -165,6 +142,34 @@ namespace WebApp.Jobs.Sync.Jobs
                 Console.WriteLine($"DATABASE ERROR: {e.Message}");
                 throw;
             }
+        }
+
+        private async Task<Movie> GetMovieAsync(IStudioClient studioClient, Movie movie)
+        {
+            var content = await _scrapperClient.GetAsync(movie.Uri);
+
+            if (content.Contains("<h1>PAGE NOT FOUND</h1>"))
+            {
+                return null;
+            }
+
+            var details = await studioClient.ParseDetailsAsync(content, movie.Uri);
+
+            movie.Description = details.Description;
+            movie.Categories = _mapper.Map<IEnumerable<Category>>(details.Categories);
+            movie.Duration = details.Duration;
+
+            if (details.Attachments != null)
+            {
+                movie.Attachments = _mapper.Map<IEnumerable<Attachment>>(details.Attachments);
+            }
+
+            if (details.Models != null)
+            {
+                movie.Models = _mapper.Map<IEnumerable<Model>>(details.Models);
+            }
+
+            return movie;
         }
     }
 }
