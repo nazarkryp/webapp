@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -24,7 +25,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<IEnumerable<Studio>> FindStudiosAsync()
         {
-            var entities = await FindAll().ToListAsync();
+            var entities = await Context.Set<Binding.Models.Studio>().Where(e => e.Name != null && e.Name != "").ToListAsync();
 
             return _mapper.Map<IEnumerable<Studio>>(entities);
         }

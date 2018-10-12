@@ -10,8 +10,12 @@ namespace WebApp.Web
             CreateWebHostBuilder(args).Build().Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) {
+            var builder = WebHost.CreateDefaultBuilder(args)
+                                 .UseUrls("https://localhost:44397")
                 .UseStartup<Startup>();
+
+            return builder;
+        }
     }
 }

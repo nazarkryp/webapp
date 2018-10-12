@@ -93,7 +93,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 moviesIds = Context.Set<Binding.Models.Movie>()
                     .Join(moviesIds, mm => mm.MovieId, mid => mid, (m, mid) => new { m, mid })
                     .Where(e => e.m.MovieModels.Count(x => ids.Contains(x.ModelId)) == idsLength)
-                    .Select(e => e.mid).Distinct();
+                    .Select(e => e.mid);
             }
 
             if (pagingFilter.Categories?.Length >= 1)
@@ -105,16 +105,19 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 moviesIds = Context.Set<Binding.Models.Movie>()
                     .Join(moviesIds, mm => mm.MovieId, mid => mid, (m, mid) => new { m, mid })
                     .Where(e => e.m.MovieCategories.Count(x => ids.Contains(x.CategoryId)) == idsLength)
-                    .Select(e => e.mid).Distinct();
+                    .Select(e => e.mid);
             }
 
             var query = Context.Set<Binding.Models.Movie>()
-                .Join(moviesIds, e => e.MovieId, e => e, (movie, i) => new { movie, i })
-                .Select(e => e.movie)
-                .Include(e => e.Attachments)
-                .Include(e => e.Studio)
-                .AsQueryable();
+                               .Join(moviesIds.Distinct(), e => e.MovieId, e => e, (movie, i) => new { movie, i })
+                               .Select(e => e.movie)
+                               .Include(e => e.Attachments)
+                               .Include(e => e.Studio);
 
+            //var query = Context.Set<Binding.Models.Movie>()
+                               //.Include(e => e.Attachments)
+                               //.Include(e => e.Studio);
+            
             var page = await GetPageAsync(query, pagingFilter.OrderBy, pagingFilter.Page, pagingFilter.Size);
 
             watch.Stop();
