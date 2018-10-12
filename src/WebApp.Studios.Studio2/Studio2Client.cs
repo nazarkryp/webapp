@@ -168,7 +168,16 @@ namespace WebApp.Studios.Studio2
 
             var a = element.QuerySelector(".contain-img");
             movie.Title = a.GetAttribute("title");
-            movie.Uri = a.GetAttribute("href");
+            var url = a.GetAttribute("href");
+
+            var movieUri = new Uri(url);
+
+            if (!string.IsNullOrEmpty(movieUri.Query))
+            {
+                url = url.Remove(url.IndexOf(movieUri.Query, StringComparison.CurrentCultureIgnoreCase), movieUri.Query.Length);
+            }
+
+            movie.Uri = url;
 
             var src = a.QuerySelectorAll("img").FirstOrDefault(e => string.IsNullOrEmpty(e.ClassName))?.GetAttribute("src");
 

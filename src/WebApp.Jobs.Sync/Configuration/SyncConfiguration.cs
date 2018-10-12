@@ -2,6 +2,6 @@
 {
     internal class SyncConfiguration : ISyncConfiguration
     {
-        public int MaxDegreeOfParallelism => 5;
+        public int MaxDegreeOfParallelism => 2;
     }
 }

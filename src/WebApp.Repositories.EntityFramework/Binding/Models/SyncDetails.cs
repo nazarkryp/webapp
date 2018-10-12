@@ -12,6 +12,6 @@ namespace WebApp.Repositories.EntityFramework.Binding.Models
 
         public DateTime LastSyncDate { get; set; }
 
-        public int LastSyncPage { get; set; }
+        public int? LastSyncPage { get; set; }
     }
 }

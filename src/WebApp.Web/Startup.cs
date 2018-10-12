@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+
 using WebApp.Web.Infrastructure.Filters;
 using WebApp.Web.Infrastructure.Ioc;
 using WebApp.Web.Models;
@@ -39,12 +40,10 @@ namespace WebApp.Web
 
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            ValidateIssuer = true,
-                            ValidateAudience = true,
+                            ValidateIssuer = false,
+                            ValidateAudience = false,
                             ValidateLifetime = true,
                             ValidateIssuerSigningKey = true,
-                            ValidIssuer = "webapp.com",
-                            ValidAudience = "webapp.com",
                             IssuerSigningKey = new SymmetricSecurityKey(securityKeyBytes)
                         };
                     }
@@ -72,37 +71,29 @@ namespace WebApp.Web
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            //if (env.IsDevelopment())
-            //{
-            //    app.UseDeveloperExceptionPage();
-            //}
-            //else
-            //{
-            //    app.UseExceptionHandler("/Error");
-            //    //app.UseHsts();
-            //}
-
-            var settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
-            app.UseExceptionHandler(e =>
+            if (env.IsDevelopment())
             {
-                e.Run(context =>
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                var settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+                app.UseExceptionHandler(e =>
                 {
-                    var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
-                    var errorResult = new ErrorResult((HttpStatusCode)context.Response.StatusCode, exceptionHandlerFeature.Error.Message);
-                    var json = JsonConvert.SerializeObject(errorResult, settings);
-                    context.Response.ContentType = "application/json";
+                    e.Run(context =>
+                    {
+                        var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
+                        var errorResult = new ErrorResult((HttpStatusCode)context.Response.StatusCode, exceptionHandlerFeature.Error.Message);
+                        var json = JsonConvert.SerializeObject(errorResult, settings);
+                        context.Response.ContentType = "application/json";
 
-                    return context.Response.WriteAsync(json);
+                        return context.Response.WriteAsync(json);
+                    });
                 });
-            });
+            }
 
             app.UseHttpsRedirection();
             app.UseAuthentication();
-
-            //app.UseStaticFiles();
-            //app.UseSpaStaticFiles();
-
-            //app.UseMiddleware(typeof(ErrorHandlingMiddleware));
 
             app.UseStatusCodePages(context =>
             {
@@ -130,12 +121,10 @@ namespace WebApp.Web
 
             app.UseCors("CorsPolicy");
 
-            app.UseMvc(routes =>
-            {
-                //routes.MapRoute(
-                //    name: "default",
-                //    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+            //app.UseStaticFiles();
+            //app.UseSpaStaticFiles();
+
+            app.UseMvc();
 
             //app.UseSpa(spa =>
             //{

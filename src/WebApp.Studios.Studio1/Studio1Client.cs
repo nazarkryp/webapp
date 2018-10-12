@@ -26,8 +26,8 @@ namespace WebApp.Studios.Studio1
         public async Task<int> GetPagesCountAsync()
         {
             var requestUri = string.Format(UpdatesStringFormat, BaseAddress, 1);
-            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            //requestUri = $"/v1/proxy?requestUri=base64_{encryptedUri}";
+            var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            requestUri = $"{Studio1ClientConstants.Proxy}/v1/proxy?requestUri=base64_{encryptedUri}";
 
             var config = Configuration.Default.WithDefaultLoader();
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
@@ -43,8 +43,8 @@ namespace WebApp.Studios.Studio1
         {
             var requestUri = string.Format(UpdatesStringFormat, BaseAddress, page);
             var config = Configuration.Default.WithDefaultLoader();
-            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            //requestUri = $"/v1/proxy?requestUri=base64_{encryptedUri}";
+            var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            requestUri = $"{Studio1ClientConstants.Proxy}/v1/proxy?requestUri=base64_{encryptedUri}";
 
             var document = await BrowsingContext.New(config).OpenAsync(requestUri);
             var items = document.All.Where(element => element.LocalName == "div" && element.ClassList.Contains("release-card-wrap"));
@@ -52,6 +52,117 @@ namespace WebApp.Studios.Studio1
             var movies = items.Select(e => ParseElement(e));
 
             return movies;
+        }
+
+        public async Task<StudioMovie> GetMovieDetailsAsync(string requestUri)
+        {
+            //var config = Configuration.Default.WithDefaultLoader();
+            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
+            //requestUri = $"/v1/proxy?requestUri=base64_{encryptedUri}";
+            //var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+
+            var content = await GetAsync(requestUri);
+
+            return await ParseDetailsAsync(content, requestUri);
+        }
+
+        private StudioMovie ParseElement(IElement element)
+        {
+            var movie = new StudioMovie();
+
+            var link = element.QuerySelectorAll("a.sample-picker").FirstOrDefault();
+            var time = element.QuerySelector("time");
+
+            var url = $"{BaseAddress}{link?.GetAttribute("href")}";
+            var movieUri = new Uri(url);
+
+            if (!string.IsNullOrEmpty(movieUri.Query))
+            {
+                url = url.Remove(url.IndexOf(movieUri.Query, StringComparison.CurrentCultureIgnoreCase), movieUri.Query.Length);
+            }
+
+            movie.Title = link?.GetAttribute("title");
+            movie.Uri = url;
+            movie.Description = element.QuerySelector(".scene-postcard-description")?.TextContent?.Trim();
+
+            movie.Models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct();
+
+            movie.Attachments = link?.Children.Where(e => e.LocalName == "img").Select(e =>
+            {
+                var value = e.GetAttribute("data-src");
+                var uri = value.StartsWith("//", StringComparison.Ordinal) ? $"http://{value.Substring("//".Length)}" : value;
+
+                return uri;
+            }).ToArray();
+
+            string timeValue;
+
+            if (!string.IsNullOrEmpty(timeValue = time.InnerHtml))
+            {
+                if (timeValue.Trim().StartsWith(@"\n"))
+                {
+                    timeValue = timeValue.Substring(2);
+                }
+
+                movie.Date = DateTime.Parse(timeValue.Trim());
+            }
+
+            if (string.IsNullOrEmpty(movie.Title))
+            {
+                movie = ParseLegacyElement(element);
+            }
+
+            if (string.IsNullOrEmpty(movie.Description))
+            {
+                movie.Description = string.Empty;
+            }
+
+            return movie;
+        }
+
+        private static StudioMovie ParseLegacyElement(IElement element)
+        {
+            var movie = new StudioMovie();
+
+            var card = element.QuerySelector(".card-image");
+
+            var a = card.QuerySelectorAll("a").FirstOrDefault();
+
+            movie.Title = a?.GetAttribute("title");
+            var url = $"{BaseAddress}{a?.GetAttribute("href")}";
+            var movieUri = new Uri(url);
+
+            if (!string.IsNullOrEmpty(movieUri.Query))
+            {
+                url = url.Remove(url.IndexOf(movieUri.Query, StringComparison.CurrentCultureIgnoreCase), movieUri.Query.Length);
+            }
+
+            movie.Uri = url;
+
+            var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct();
+
+            movie.Models = models;
+
+            var imgSrc = a?.QuerySelector("img")?.GetAttribute("data-src");
+
+            if (!string.IsNullOrEmpty(imgSrc))
+            {
+                movie.Attachments = new List<string>
+                {
+                    imgSrc.StartsWith("//") ? $"https://{imgSrc}" : imgSrc
+                };
+            }
+
+            movie.Description = element.QuerySelector(".scene-postcard-description")?.TextContent?.Trim();
+
+            var date = element.QuerySelector(".scene-postcard-date").TextContent.Trim();
+
+            if (DateTime.TryParse(date, out var dateTime))
+            {
+                movie.Date = dateTime;
+            }
+
+            return movie;
         }
 
         public async Task<StudioMovie> ParseDetailsAsync(string html, string requestUri)
@@ -93,101 +204,6 @@ namespace WebApp.Studios.Studio1
                 Categories = categories,
                 Models = document.QuerySelector(".related-model").QuerySelectorAll("a").Select(e => e.TextContent.Trim()).Distinct()
             };
-
-            return movie;
-        }
-
-        public async Task<StudioMovie> GetMovieDetailsAsync(string requestUri)
-        {
-            //var config = Configuration.Default.WithDefaultLoader();
-            //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
-            //requestUri = $"/v1/proxy?requestUri=base64_{encryptedUri}";
-            //var document = await BrowsingContext.New(config).OpenAsync(requestUri);
-
-            var content = await GetAsync(requestUri);
-
-            return await ParseDetailsAsync(content, requestUri);
-        }
-
-        private StudioMovie ParseElement(IElement element)
-        {
-            var movie = new StudioMovie();
-
-            var link = element.QuerySelectorAll("a.sample-picker").FirstOrDefault();
-            var time = element.QuerySelector("time");
-
-            movie.Title = link?.GetAttribute("title");
-            movie.Uri = $"{BaseAddress}{link?.GetAttribute("href")}";
-            movie.Description = element.QuerySelector(".scene-postcard-description")?.TextContent?.Trim();
-
-            movie.Models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct();
-
-            movie.Attachments = link?.Children.Where(e => e.LocalName == "img").Select(e =>
-            {
-                var value = e.GetAttribute("data-src");
-                var uri = value.StartsWith("//", StringComparison.Ordinal) ? $"http://{value.Substring("//".Length)}" : value;
-
-                return uri;
-            }).ToArray();
-
-            string timeValue;
-
-            if (!string.IsNullOrEmpty(timeValue = time.InnerHtml))
-            {
-                if (timeValue.Trim().StartsWith(@"\n"))
-                {
-                    timeValue = timeValue.Substring(2);
-                }
-
-                movie.Date = DateTime.Parse(timeValue.Trim());
-            }
-
-            if (string.IsNullOrEmpty(movie.Title))
-            {
-                movie = ParseLegacyElement(element);
-            }
-
-            if (string.IsNullOrEmpty(movie.Description))
-            {
-                var uri = movie.Uri;
-            }
-
-            return movie;
-        }
-
-        private static StudioMovie ParseLegacyElement(IElement element)
-        {
-            var movie = new StudioMovie();
-
-            var card = element.QuerySelector(".card-image");
-
-            var a = card.QuerySelectorAll("a").FirstOrDefault();
-
-            movie.Title = a?.GetAttribute("title");
-            movie.Uri = $"{BaseAddress}{a?.GetAttribute("href")}";
-
-            var models = element.QuerySelector(".model-names")?.QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct();
-
-            movie.Models = models;
-
-            var imgSrc = a?.QuerySelector("img")?.GetAttribute("data-src");
-
-            if (!string.IsNullOrEmpty(imgSrc))
-            {
-                movie.Attachments = new List<string>
-                {
-                    imgSrc.StartsWith("//") ? $"https://{imgSrc}" : imgSrc
-                };
-            }
-
-            movie.Description = element.QuerySelector(".scene-postcard-description")?.TextContent?.Trim();
-
-            var date = element.QuerySelector(".scene-postcard-date").TextContent.Trim();
-
-            if (DateTime.TryParse(date, out var dateTime))
-            {
-                movie.Date = dateTime;
-            }
 
             return movie;
         }

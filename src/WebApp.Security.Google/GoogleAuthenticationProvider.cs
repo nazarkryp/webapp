@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 
 using Newtonsoft.Json;
+
 using WebApp.Infrastructure.Configuration;
 using WebApp.Security.Configuration;
 using WebApp.Security.Google.Models;
@@ -21,12 +22,14 @@ namespace WebApp.Security.Google
     public class GoogleAuthenticationProvider : IAuthenticationProvider
     {
         private const string BaseAddess = "https://accounts.google.com/o/oauth2/v2/auth";
+        private const string ResponseType = "code";
 
+        private readonly string[] _scopes = { "openid", "email", "profile" };
+
+        private readonly IConfigurationProvider _configurationProvider;
         private readonly string _clientId;
         private readonly string _clientSecret;
         private readonly string _redirectUri;
-
-        private readonly IConfigurationProvider _configurationProvider;
 
         public GoogleAuthenticationProvider(IOAuthConfiguration configuration, IConfigurationProvider configurationProvider)
         {
@@ -38,8 +41,8 @@ namespace WebApp.Security.Google
 
         public string RedirectUri => $"{BaseAddess}" +
                                      $"?client_id={_clientId}" +
-                                     $"&scope=openid email profile" +
-                                     $"&response_type=code" +
+                                     $"&scope={string.Join(" ", _scopes)}" +
+                                     $"&response_type={ResponseType}" +
                                      $"&redirect_uri={_redirectUri}";
 
         public async Task<string> GetAccessToken(string code)
@@ -53,20 +56,19 @@ namespace WebApp.Security.Google
                              $"&redirect_uri={_redirectUri}" +
                              $"&grant_type=authorization_code";
 
-            AccessToken googleAccessToken;
+            AccessToken accessToken;
+
             using (var client = new HttpClient())
             {
                 var response = await client.PostAsync(requestUri, null);
                 var content = await response.Content.ReadAsStringAsync();
 
-                googleAccessToken = JsonConvert.DeserializeObject<AccessToken>(content);
+                accessToken = JsonConvert.DeserializeObject<AccessToken>(content);
             }
 
-            var claims = GetClaimsIdentity(googleAccessToken);
+            var claims = GetClaimsIdentity(accessToken);
 
-            var token = CreateAccessToken(claims);
-
-            return token;
+            return CreateJwt(claims.ToList());
         }
 
         private static IEnumerable<Claim> GetClaimsIdentity(IAccessToken accessToken)
@@ -90,24 +92,25 @@ namespace WebApp.Security.Google
             return claims;
         }
 
-        private string CreateAccessToken(IEnumerable<Claim> claims)
+        public string CreateJwt(IList<Claim> claims)
         {
             var securityKeyString = _configurationProvider.Get("SecurityKey");
             var securityKey = Encoding.UTF8.GetBytes(securityKeyString);
-
             var key = new SymmetricSecurityKey(securityKey);
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(
-                issuer: "webapp.com",
-                audience: "webapp.com",
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: creds);
+            var expires = claims.FirstOrDefault(e => e.Type == JwtRegisteredClaimNames.Exp)?.Value;
 
-            var handler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Parse(expires),
+                SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
+            };
 
-            return handler.WriteToken(token);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(securityToken);
         }
     }
 }

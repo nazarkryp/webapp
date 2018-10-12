@@ -25,23 +25,23 @@ namespace WebApp.Jobs.Sync
                 var detailsJob = serviceProvider.GetService<IDetailsJob>();
                 var studioClients = serviceProvider.GetServices<IStudioClient>();
 
-                //foreach (var studioClient in studioClients)
-                //{
-                //    Console.WriteLine(studioClient.StudioName);
-                //    await job.SyncAsync(studioClient);
-                //}
+                foreach (var studioClient in studioClients)
+                {
+                    Console.WriteLine($"Scrapping: {studioClient.StudioName}");
+                    await job.SyncAsync(studioClient);
+                }
 
                 //await Task.WhenAll(studioClients.Select(job.SyncAsync));
 
                 //await studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName).GetMovieDetailsAsync("https://tour.brazzersnetwork.com/scenes/view/id/2871343/slow-and-sexy/");
 
-                var getDetailsTasks = new List<Task>
-                {
-                    // detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName)),
-                    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio2ClientConstants.StudioName))
-                };
+                //var getDetailsTasks = new List<Task>
+                //{
+                //    // detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName)),
+                //    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio2ClientConstants.StudioName))
+                //};
 
-                await Task.WhenAll(getDetailsTasks);
+                //await Task.WhenAll(getDetailsTasks);
             }
             catch (Exception e)
             {

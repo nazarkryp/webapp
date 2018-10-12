@@ -87,25 +87,25 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
             if (pagingFilter.Models?.Length >= 1)
             {
-                var modelsIds = pagingFilter.Models.ToArray();
-                var models = Context.Set<Binding.Models.Model>().Where(e => modelsIds.Contains(e.ModelId));
+                var ids = pagingFilter.Models.ToArray();
+                var idsLength = ids.Length;
 
-                moviesIds = Context.Set<Binding.Models.MovieModel>()
-                    .Join(moviesIds, mm => mm.MovieId, mid => mid, (mm, mid) => new { mm, mid })
-                    .Join(models, mm => mm.mm.ModelId, m => m.ModelId, (mm, m) => new { mm, m })
-                    .Select(e => e.mm.mid);
+                moviesIds = Context.Set<Binding.Models.Movie>()
+                    .Join(moviesIds, mm => mm.MovieId, mid => mid, (m, mid) => new { m, mid })
+                    .Where(e => e.m.MovieModels.Count(x => ids.Contains(x.ModelId)) == idsLength)
+                    .Select(e => e.mid).Distinct();
             }
 
             if (pagingFilter.Categories?.Length >= 1)
             {
                 var lowerCategoriesNames = pagingFilter.Categories.Select(e => e.ToLower()).ToArray();
+                var ids = await Context.Set<Binding.Models.Category>().Where(e => lowerCategoriesNames.Contains(e.Name.ToLower())).Select(e => e.CategoryId).ToListAsync();
+                var idsLength = ids.Count;
 
-                var categories = Context.Set<Binding.Models.Category>().Where(e => lowerCategoriesNames.Contains(e.Name.ToLower()));
-
-                moviesIds = Context.Set<Binding.Models.MovieCategory>()
-                    .Join(moviesIds, mc => mc.MovieId, mid => mid, (mc, m) => new { mc, m })
-                    .Join(categories, mc => mc.mc.CategoryId, c => c.CategoryId, (mc, c) => new { mc, c })
-                    .Select(e => e.mc.m);
+                moviesIds = Context.Set<Binding.Models.Movie>()
+                    .Join(moviesIds, mm => mm.MovieId, mid => mid, (m, mid) => new { m, mid })
+                    .Where(e => e.m.MovieCategories.Count(x => ids.Contains(x.CategoryId)) == idsLength)
+                    .Select(e => e.mid).Distinct();
             }
 
             var query = Context.Set<Binding.Models.Movie>()

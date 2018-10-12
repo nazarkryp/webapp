@@ -65,15 +65,15 @@ namespace WebApp.Infrastructure.Handlers
             }
         }
 
-        public Task ForAsync(Func<int, Task> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism)
+        public Task ForAsync<TResult>(Func<int, Task<TResult>> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism)
         {
             return ForAsync(action, fromInclusive, toExclusive, maxDegreeOfParallelism, null);
         }
 
-        public async Task ForAsync(Func<int, Task> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism, Func<Task> iterationCompleted, CancellationToken? token = null)
+        public async Task ForAsync<TResult>(Func<int, Task<TResult>> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism, Func<object, Task> iterationCompleted, CancellationToken? token = null)
         {
             var start = fromInclusive;
-            var tasks = new List<Task>(maxDegreeOfParallelism);
+            var tasks = new List<Task<TResult>>(maxDegreeOfParallelism);
 
             if (fromInclusive < toExclusive)
             {
@@ -93,7 +93,9 @@ namespace WebApp.Infrastructure.Handlers
 
                         if (iterationCompleted != null)
                         {
-                            await iterationCompleted();
+                            var results = tasks.Select(e => e.Result);
+
+                            await iterationCompleted(results);
                         }
                     }
                 }
@@ -116,7 +118,9 @@ namespace WebApp.Infrastructure.Handlers
 
                         if (iterationCompleted != null)
                         {
-                            await iterationCompleted();
+                            var results = tasks.Select(e => e.Result);
+
+                            await iterationCompleted(results);
                         }
                     }
                 }
