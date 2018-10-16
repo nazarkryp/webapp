@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
+
 using WebApp.Domain.Entities;
 using WebApp.Mapping;
 using WebApp.Repositories.Common;
@@ -72,28 +73,15 @@ namespace WebApp.Repositories.EntityFramework.Repositories
         {
             var watch = Stopwatch.StartNew();
 
-            IQueryable<int> moviesIds;
-
-            if (pagingFilter.Studios?.Length >= 1)
-            {
-                moviesIds = Context.Set<Binding.Models.Movie>()
-                    .Where(e => pagingFilter.Studios.Contains(e.StudioId))
-                    .Select(e => e.MovieId);
-            }
-            else
-            {
-                moviesIds = Context.Set<Binding.Models.Movie>().Select(e => e.MovieId);
-            }
+            IQueryable<Binding.Models.Movie> movies = null;
 
             if (pagingFilter.Models?.Length >= 1)
             {
                 var ids = pagingFilter.Models.ToArray();
                 var idsLength = ids.Length;
 
-                moviesIds = Context.Set<Binding.Models.Movie>()
-                    .Join(moviesIds, mm => mm.MovieId, mid => mid, (m, mid) => new { m, mid })
-                    .Where(e => e.m.MovieModels.Count(x => ids.Contains(x.ModelId)) == idsLength)
-                    .Select(e => e.mid);
+                movies = Context.Set<Binding.Models.Movie>()
+                    .Where(e => e.MovieModels.Count(x => ids.Contains(x.ModelId)) == idsLength);
             }
 
             if (pagingFilter.Categories?.Length >= 1)
@@ -102,23 +90,26 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 var ids = await Context.Set<Binding.Models.Category>().Where(e => lowerCategoriesNames.Contains(e.Name.ToLower())).Select(e => e.CategoryId).ToListAsync();
                 var idsLength = ids.Count;
 
-                moviesIds = Context.Set<Binding.Models.Movie>()
-                    .Join(moviesIds, mm => mm.MovieId, mid => mid, (m, mid) => new { m, mid })
-                    .Where(e => e.m.MovieCategories.Count(x => ids.Contains(x.CategoryId)) == idsLength)
-                    .Select(e => e.mid);
+                movies = (movies ?? Context.Set<Binding.Models.Movie>())
+                    .Where(e => e.MovieCategories.Count(x => ids.Contains(x.CategoryId)) == idsLength);
             }
 
-            var query = Context.Set<Binding.Models.Movie>()
-                               .Join(moviesIds.Distinct(), e => e.MovieId, e => e, (movie, i) => new { movie, i })
-                               .Select(e => e.movie)
-                               .Include(e => e.Attachments)
-                               .Include(e => e.Studio);
+            if (pagingFilter.Studios?.Length >= 1)
+            {
+                movies = (movies ?? Context.Set<Binding.Models.Movie>())
+                    .Where(e => pagingFilter.Studios.Contains(e.StudioId));
+            }
 
-            //var query = Context.Set<Binding.Models.Movie>()
-                               //.Include(e => e.Attachments)
-                               //.Include(e => e.Studio);
-            
-            var page = await GetPageAsync(query, pagingFilter.OrderBy, pagingFilter.Page, pagingFilter.Size);
+            if (movies == null)
+            {
+                movies = Context.Set<Binding.Models.Movie>();
+            }
+
+            movies = movies
+                .Include(e => e.Attachments)
+                .Include(e => e.Studio);
+
+            var page = await GetPageAsync(movies, pagingFilter.OrderBy, pagingFilter.Page, pagingFilter.Size);
 
             watch.Stop();
             var seconds = watch.Elapsed.Seconds;
