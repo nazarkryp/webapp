@@ -16,8 +16,12 @@ namespace WebApp.Repositories.EntityFramework.Binding.Mapping
                     opt.Condition(e => e.Studio != null);
                     opt.MapFrom(e => e.Studio.StudioId);
                 })
-                .ForMember(e => e.Attachments, opt => opt.MapFrom(e => e.Attachments))
-                .ForMember(e => e.Studio, opt => opt.Ignore())
+                .ForMember(e => e.Attachments, opt =>
+                {
+                    opt.PreCondition(e => e.Attachments != null && e.Attachments.Any());
+                    opt.Condition(e => e.Attachments != null && e.Attachments.Any()); // not working
+                    opt.MapFrom(e => e.Attachments);
+                })
                 .ForMember(e => e.MovieModels, opt => opt.ResolveUsing(e =>
                 {
                     return e.Models?.Select(m => new Binding.Models.MovieModel
@@ -42,7 +46,8 @@ namespace WebApp.Repositories.EntityFramework.Binding.Mapping
                             }
                         }) ?? Enumerable.Empty<Binding.Models.MovieCategory>();
                     });
-                });
+                })
+                .ForMember(e => e.Studio, opt => opt.Ignore());
 
             CreateMap<Binding.Models.Movie, Movie>()
                 .ForMember(e => e.Categories, opt => opt.MapFrom(e => e.MovieCategories.Select(mc => mc.Category)))

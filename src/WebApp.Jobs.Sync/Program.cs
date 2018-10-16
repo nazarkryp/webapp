@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using WebApp.Jobs.Sync.Infrastructure;
 using WebApp.Jobs.Sync.Jobs;
+using WebApp.Jobs.Sync.Scrappers;
 using WebApp.Studios;
 using WebApp.Studios.Studio1;
 using WebApp.Studios.Studio2;
@@ -20,28 +21,35 @@ namespace WebApp.Jobs.Sync
             try
             {
                 var serviceProvider = IocConfig.ConfigureIoc();
+                var studioClients = serviceProvider.GetServices<IStudioClient>().Where(e => !string.IsNullOrEmpty(e.StudioName));
+                //var job = serviceProvider.GetService<IJob>();
 
-                var job = serviceProvider.GetService<IJob>();
                 var detailsJob = serviceProvider.GetService<IDetailsJob>();
-                var studioClients = serviceProvider.GetServices<IStudioClient>();
+                var scrapper = serviceProvider.GetService<IScrapper>();
+                await scrapper.ScrapMoviesAsync(studioClients.ToArray());
 
-                foreach (var studioClient in studioClients)
-                {
-                    Console.WriteLine($"Scrapping: {studioClient.StudioName}");
-                    await job.SyncAsync(studioClient);
-                }
-
+                //foreach (var studioClient in studioClients)
+                //{
+                //    Console.WriteLine($"Scrapping: {studioClient.StudioName}");
+                //    await job.SyncAsync(studioClient);
+                //}
                 //await Task.WhenAll(studioClients.Select(job.SyncAsync));
 
-                //await studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName).GetMovieDetailsAsync("https://tour.brazzersnetwork.com/scenes/view/id/2871343/slow-and-sexy/");
+                var getDetailsTasks = new List<Task>
+                {
+                    /*detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName)),*/
+                    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio2ClientConstants.StudioName))
+                };
+                await Task.WhenAll(getDetailsTasks);
 
-                //var getDetailsTasks = new List<Task>
-                //{
-                //    // detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName)),
-                //    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio2ClientConstants.StudioName))
-                //};
+                getDetailsTasks = new List<Task>
+                {
+                    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName))
+                };
 
-                //await Task.WhenAll(getDetailsTasks);
+                await Task.WhenAll(getDetailsTasks);
+
+                //await Task.WhenAll(studioClients.Select(detailsJob.SyncMovieDetailsAsync));
             }
             catch (Exception e)
             {

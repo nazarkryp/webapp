@@ -95,7 +95,7 @@ namespace WebApp.Jobs.Sync.Jobs
                 {
                     stopwatch.Stop();
                 }
-            }, 1, () => IterationCompleted(buffer));
+            }, 3, () => IterationCompleted(buffer));
         }
 
         private async Task IterationCompleted(ConcurrentBag<Movie> buffer)

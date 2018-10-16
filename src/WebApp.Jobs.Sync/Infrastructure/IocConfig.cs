@@ -6,6 +6,7 @@ using WebApp.Ioc;
 using WebApp.Jobs.Sync.Configuration;
 using WebApp.Jobs.Sync.Infrastructure.Communication;
 using WebApp.Jobs.Sync.Jobs;
+using WebApp.Jobs.Sync.Scrappers;
 
 namespace WebApp.Jobs.Sync.Infrastructure
 {
@@ -22,6 +23,7 @@ namespace WebApp.Jobs.Sync.Infrastructure
 
             services.AddSingleton<ISyncConfiguration, SyncConfiguration>();
             services.AddTransient<IJob, SyncMoviesDataJob>();
+            services.AddTransient<IScrapper, MovieScrapper>();
             services.AddTransient<IDetailsJob, SyncMovieDetailsDataJob>();
 
             services.AddTransient<IScrapperConfiguration, ScrapperConfiguration>();

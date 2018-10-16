@@ -84,7 +84,7 @@ namespace WebApp.Security.Google
                 new Claim(JwtRegisteredClaimNames.FamilyName, claimsDictionary[JwtRegisteredClaimNames.FamilyName]),
                 new Claim(JwtRegisteredClaimNames.Email, claimsDictionary[JwtRegisteredClaimNames.Email]),
                 new Claim(JwtRegisteredClaimNames.Sub, claimsDictionary[JwtRegisteredClaimNames.Sub]),
-                new Claim(JwtRegisteredClaimNames.Exp, DateTime.UtcNow.AddDays(1).ToString(CultureInfo.InvariantCulture)),
+                new Claim(JwtRegisteredClaimNames.Exp, DateTime.UtcNow.AddDays(1).ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, claimsDictionary[JwtRegisteredClaimNames.Iat]),
                 new Claim("picture", claimsDictionary["picture"])
             };

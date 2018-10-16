@@ -25,7 +25,7 @@ namespace WebApp.Web.Controllers
             _configurationProvider = configurationProvider;
         }
 
-        [Authorize]
+        // [Authorize]
         public IActionResult GetAccount()
         {
             var account = new Account

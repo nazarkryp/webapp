@@ -199,6 +199,7 @@ namespace WebApp.Studios.Studio1
 
             var movie = new StudioMovie
             {
+                Attachments = null,
                 Duration = duration,
                 Description = description?.TextContent.Trim(),
                 Categories = categories,

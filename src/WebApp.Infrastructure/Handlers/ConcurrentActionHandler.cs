@@ -70,7 +70,7 @@ namespace WebApp.Infrastructure.Handlers
             return ForAsync(action, fromInclusive, toExclusive, maxDegreeOfParallelism, null);
         }
 
-        public async Task ForAsync<TResult>(Func<int, Task<TResult>> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism, Func<object, Task> iterationCompleted, CancellationToken? token = null)
+        public async Task ForAsync<TResult>(Func<int, Task<TResult>> action, int fromInclusive, int toExclusive, int maxDegreeOfParallelism, Func<IEnumerable<TResult>, Task> iterationCompleted, CancellationToken? token = null)
         {
             var start = fromInclusive;
             var tasks = new List<Task<TResult>>(maxDegreeOfParallelism);
@@ -79,7 +79,7 @@ namespace WebApp.Infrastructure.Handlers
             {
                 for (; fromInclusive < toExclusive; fromInclusive++)
                 {
-                    if (token != null && token.Value.IsCancellationRequested)
+                    if (token != null && token.Value.IsCancellationRequested && tasks.Count == 0)
                     {
                         break;
                     }
@@ -89,7 +89,6 @@ namespace WebApp.Infrastructure.Handlers
                     if (tasks.Count == maxDegreeOfParallelism || tasks.Count == Math.Abs(start - toExclusive))
                     {
                         await Task.WhenAll(tasks);
-                        tasks.Clear();
 
                         if (iterationCompleted != null)
                         {
@@ -97,6 +96,8 @@ namespace WebApp.Infrastructure.Handlers
 
                             await iterationCompleted(results);
                         }
+
+                        tasks.Clear();
                     }
                 }
             }
@@ -104,7 +105,7 @@ namespace WebApp.Infrastructure.Handlers
             {
                 for (; fromInclusive > toExclusive; fromInclusive--)
                 {
-                    if (token != null && token.Value.IsCancellationRequested)
+                    if (token != null && token.Value.IsCancellationRequested && tasks.Count == 0)
                     {
                         break;
                     }
@@ -114,7 +115,6 @@ namespace WebApp.Infrastructure.Handlers
                     if (tasks.Count == maxDegreeOfParallelism || tasks.Count == Math.Abs(start - toExclusive))
                     {
                         await Task.WhenAll(tasks);
-                        tasks.Clear();
 
                         if (iterationCompleted != null)
                         {
@@ -122,6 +122,8 @@ namespace WebApp.Infrastructure.Handlers
 
                             await iterationCompleted(results);
                         }
+
+                        tasks.Clear();
                     }
                 }
             }

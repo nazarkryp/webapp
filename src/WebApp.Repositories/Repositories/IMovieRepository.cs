@@ -11,6 +11,8 @@ namespace WebApp.Repositories.Repositories
     {
         Task<IEnumerable<Movie>> FindLatestAsync(int studioId);
 
+        Task<Movie> FindLastAsync(int studioId);
+
         Task<IEnumerable<Movie>> FindMoviesWithoutDetailsAsync(int studioId);
         
         Task<Page<Movie>> FindMoviesAsync(MoviesPagingFilter pagingFilter);

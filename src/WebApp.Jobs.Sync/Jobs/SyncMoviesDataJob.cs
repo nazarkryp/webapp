@@ -64,13 +64,13 @@ namespace WebApp.Jobs.Sync.Jobs
         {
             var buffer = new ConcurrentDictionary<int, IEnumerable<Studios.StudioMovie>>();
 
-            await _concurrentActionHandler.ForAsync(async pageIndex =>
-            {
-                Console.WriteLine($"Retrieving {studioClient.StudioName}. Page {pageIndex}.");
+            //await _concurrentActionHandler.ForAsync(async pageIndex =>
+            //{
+            //    Console.WriteLine($"Retrieving {studioClient.StudioName}. Page {pageIndex}.");
 
-                var movies = await studioClient.GetMoviesAsync(pageIndex);
-                buffer.TryAdd(pageIndex, movies);
-            }, startFrom, 0, _syncConfiguration.MaxDegreeOfParallelism, async () => { syncDetails = await SaveAsync(buffer, syncDetails, studioId); });
+            //    var movies = await studioClient.GetMoviesAsync(pageIndex);
+            //    buffer.TryAdd(pageIndex, movies);
+            //}, startFrom, 0, _syncConfiguration.MaxDegreeOfParallelism, async () => { syncDetails = await SaveAsync(buffer, syncDetails, studioId); });
         }
 
         private async Task<SyncDetails> SaveAsync(ConcurrentDictionary<int, IEnumerable<Studios.StudioMovie>> buffer, SyncDetails syncDetails, int studioId)
@@ -102,35 +102,35 @@ namespace WebApp.Jobs.Sync.Jobs
             var buffer = new ConcurrentDictionary<int, IEnumerable<Studios.StudioMovie>>();
             var cts = new CancellationTokenSource();
 
-            await _concurrentActionHandler.ForAsync(async pageIndex =>
-            {
-                var movies = await studioClient.GetMoviesAsync(pageIndex);
-                buffer.TryAdd(pageIndex, movies);
-            }, 1, 100, _syncConfiguration.MaxDegreeOfParallelism, async () =>
-            {
-                var pages = buffer.OrderBy(e => e.Key).ToList();
-                buffer.Clear();
+            //await _concurrentActionHandler.ForAsync(async pageIndex =>
+            //{
+            //    var movies = await studioClient.GetMoviesAsync(pageIndex);
+            //    buffer.TryAdd(pageIndex, movies);
+            //}, 1, 100, _syncConfiguration.MaxDegreeOfParallelism, async () =>
+            //{
+            //    var pages = buffer.OrderBy(e => e.Key).ToList();
+            //    buffer.Clear();
 
-                if (pages.Any())
-                {
-                    var studioMovies = pages.SelectMany(e => e.Value);
+            //    if (pages.Any())
+            //    {
+            //        var studioMovies = pages.SelectMany(e => e.Value);
 
-                    studioMovies = studioMovies.Where(studioMovie => existingMovies.All(existingMovie => !string.Equals(existingMovie.Uri, studioMovie.Uri, StringComparison.CurrentCultureIgnoreCase) && existingMovie.Date <= studioMovie.Date));
+            //        studioMovies = studioMovies.Where(studioMovie => existingMovies.All(existingMovie => !string.Equals(existingMovie.Uri, studioMovie.Uri, StringComparison.CurrentCultureIgnoreCase) && existingMovie.Date <= studioMovie.Date));
 
-                    if (!studioMovies.Any())
-                    {
-                        cts.Cancel();
-                        Console.WriteLine($"Append Completed;\n\n");
-                    }
-                    else
-                    {
-                        var moviesToSave = MapMovies(studioMovies, studioId);
-                        var saved = await _movieRepository.AddRangeAsync(moviesToSave);
+            //        if (!studioMovies.Any())
+            //        {
+            //            cts.Cancel();
+            //            Console.WriteLine($"Append Completed;\n\n");
+            //        }
+            //        else
+            //        {
+            //            var moviesToSave = MapMovies(studioMovies, studioId);
+            //            var saved = await _movieRepository.AddRangeAsync(moviesToSave);
 
-                        Console.WriteLine($"Append success ({saved.Count()} movies);\n\n");
-                    }
-                }
-            }, cts.Token);
+            //            Console.WriteLine($"Append success ({saved.Count()} movies);\n\n");
+            //        }
+            //    }
+            //}, cts.Token);
         }
 
         private async Task<Domain.Entities.Studio> GetStudioAsync(IStudioClient studioClient)

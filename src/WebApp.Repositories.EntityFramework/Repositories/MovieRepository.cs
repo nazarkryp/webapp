@@ -37,10 +37,19 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         public async Task<IEnumerable<Movie>> FindLatestAsync(int studioId)
         {
-            var max = await Context.Set<Binding.Models.Movie>().Where(e => e.StudioId == studioId).MaxAsync(e => e.Date);
+            //var max = await Context.Set<Binding.Models.Movie>().Where(e => e.StudioId == studioId).MaxAsync(e => e.Date);
+            var last = await Context.Set<Binding.Models.Movie>().Where(e => e.StudioId == studioId).OrderByDescending(e => e.Date).FirstOrDefaultAsync();
+            var max = last.Date;
             var movies = await Context.Set<Binding.Models.Movie>().Where(e => e.StudioId == studioId && e.Date == max).ToListAsync();
 
             return _mapper.Map<IEnumerable<Movie>>(movies);
+        }
+
+        public async Task<Movie> FindLastAsync(int studioId)
+        {
+            var movie = await Context.Set<Binding.Models.Movie>().OrderByDescending(e => e.Date).FirstOrDefaultAsync();
+
+            return _mapper.Map<Movie>(movie);
         }
 
         public async Task<IEnumerable<Movie>> FindMoviesWithoutDetailsAsync(int studioId)
@@ -145,6 +154,8 @@ namespace WebApp.Repositories.EntityFramework.Repositories
         {
             var source = movies as IList<Movie> ?? movies.ToList();
 
+            var invalid = source.Where(e => e.Studio == null || e.Studio.StudioId < 1);
+
             var incommingModels = source.Where(e => e.Models != null && e.Models.Any()).SelectMany(e => e.Models);
             var existingModels = await SaveModelsAsync(incommingModels);
 
@@ -179,9 +190,10 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             //    moviesToUpdate = await Context.Set<Binding.Models.Movie>().Where(e => source.Any(m => moviesToUpdateIds.Contains(m.MovieId))).ToListAsync();
             //}
 
-            var moviesToUpdateIds = source.Select(m => m.MovieId);
+            var moviesToUpdateIds = source.Select(m => m.MovieId).ToArray();
             //var moviesToUpdate = await Context.Set<Binding.Models.Movie>().Where(e => source.Any(m => moviesToUpdateIds.Contains(m.MovieId))).ToListAsync();
-            var moviesToUpdate = await Context.Set<Binding.Models.Movie>().Where(e => source.Any(m => m.MovieId == e.MovieId)).ToListAsync();
+            var moviesToUpdate = await Context.Set<Binding.Models.Movie>()
+                .Where(e => moviesToUpdateIds.Contains(e.MovieId)).ToListAsync();
 
             await MapMoviesFromSourceAsync(source, moviesToUpdate, existingCategories, existingModels);
             Context.Set<Binding.Models.Movie>().UpdateRange(moviesToUpdate);
@@ -274,7 +286,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 {
                     targetMovie = _mapper.Map(sourceMovie, targetMovie);
 
-                    MapAttachments(sourceMovie, targetMovie, existingMovieAttachments);
+                    //MapAttachments(sourceMovie, targetMovie, existingMovieAttachments);
                     MapCategoriesReferences(sourceMovie, targetMovie, existingMovieCategories, existingCategories);
                     MapModelsReferences(sourceMovie, targetMovie, existingMovieModels, existingModels);
                 }

@@ -53,10 +53,8 @@ namespace WebApp.Studios.Studio2
             var config = Configuration.Default.WithDefaultLoader();
             //var encryptedUri = EncryptionHelper.Encrypt(requestUri);
             //requestUri = $"/v1/proxy?requestUri=base64_{encryptedUri}";
-
-            Console.WriteLine($"Getting: {requestUri}");
-
             //var document = await BrowsingContext.New(config).OpenAsync(requestUri);
+
             var content = await GetAsync(requestUri);
             var parser = new HtmlParser();
             var document = await parser.ParseAsync(content);
