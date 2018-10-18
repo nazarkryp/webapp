@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +7,7 @@ using WebApp.Services.Movies;
 
 namespace WebApp.Web.Controllers
 {
-    // [Authorize]
+    //[Authorize]
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]

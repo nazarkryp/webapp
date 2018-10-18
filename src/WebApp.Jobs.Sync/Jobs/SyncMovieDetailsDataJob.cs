@@ -64,7 +64,7 @@ namespace WebApp.Jobs.Sync.Jobs
                 try
                 {
                     Interlocked.Increment(ref counter);
-                    
+
                     var movieDetails = await GetMovieAsync(studioClient, movie);
 
                     if (movieDetails != null)
@@ -95,7 +95,7 @@ namespace WebApp.Jobs.Sync.Jobs
                 {
                     stopwatch.Stop();
                 }
-            }, 3, () => IterationCompleted(buffer));
+            }, 4, () => IterationCompleted(buffer));
         }
 
         private async Task IterationCompleted(ConcurrentBag<Movie> buffer)
@@ -111,17 +111,8 @@ namespace WebApp.Jobs.Sync.Jobs
 
                 if (withoutDescription.Any())
                 {
-                    var stream = File.OpenWrite(@"C:\Users\nazarkryp\Desktop\Logs\without-description.txt");
-                    using (var writer = new StreamWriter(stream))
-                    {
-                        foreach (var item in withoutDescription)
-                        {
-                            writer.WriteLine(item);
-                        }
-                    }
-
                     Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.WriteLine($"\n\nMovied without description found: {withoutDescription.Length}\n\n");
+                    Console.WriteLine($"\n\nMovies without description: {withoutDescription.Length}\n\n");
                     Console.ForegroundColor = ConsoleColor.White;
                 }
 

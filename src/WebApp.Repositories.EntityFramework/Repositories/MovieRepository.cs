@@ -114,6 +114,12 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 movies = Context.Set<Binding.Models.Movie>();
             }
 
+            if (pagingFilter.Date.HasValue)
+            {
+                movies = movies
+                    .Where(e => e.Date == pagingFilter.Date);
+            }
+
             movies = movies
                 .Include(e => e.Attachments)
                 .Include(e => e.Studio);

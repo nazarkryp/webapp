@@ -60,34 +60,54 @@ namespace WebApp.Studios.Studio3
 
         public async Task<StudioMovie> ParseDetailsAsync(string html, string movieUri)
         {
-            var parser = new HtmlParser();
-            var document = await parser.ParseAsync(html);
-
-            var title = document.QuerySelector(".video-titles h1").TextContent.Trim();
-            var categories = document.QuerySelector(".tags-box").QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct();
-            var description = document.QuerySelector(".box-container")?.TextContent?.Trim();
-            var attachments = document.QuerySelector(".photo-slider-guest").QuerySelectorAll("a").Select(e => e.GetAttribute("href")).Distinct();
-            var models = document.QuerySelector(".pornstars-box").QuerySelectorAll("a.name").Select(e => e.TextContent.Trim()).Distinct();
-            var dateString = document.QuerySelector("time").TextContent;
-            var date = DateTime.Parse(dateString);
-            var durationString = document.QuerySelector(".info-panel.duration")?.QuerySelector(".duration")?.TextContent?.Trim();
-            durationString = durationString.Contains("min") ? Regex.Match(durationString, @"\d+").Value : durationString;
-            var duration = TimeSpan.FromMinutes(int.Parse(durationString));
-            duration = duration > TimeSpan.FromHours(23) ? TimeSpan.FromHours(23) : duration;
-
-            var studioMovie = new StudioMovie
+            try
             {
-                Title = title,
-                Description = description,
-                Categories = categories,
-                Models = models,
-                Attachments = attachments,
-                Uri = movieUri,
-                Date = date,
-                Duration = duration
-            };
+                var parser = new HtmlParser();
+                var document = await parser.ParseAsync(html);
 
-            return studioMovie;
+                var title = document.QuerySelector(".video-titles h1")?.TextContent?.Trim();
+                var categories = document.QuerySelector(".tags-box")?.QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct();
+                var description = document.QuerySelector(".box-container")?.TextContent?.Trim();
+                var attachments = document.QuerySelector(".photo-slider-guest")?.QuerySelectorAll("a")?.Select(e => e.GetAttribute("href")).Distinct();
+                var models = document.QuerySelector(".pornstars-box").QuerySelectorAll("a.name").Select(e => e.TextContent.Trim()).Distinct();
+                var dateString = document.QuerySelector("time")?.TextContent;
+                DateTime? date = null;
+                TimeSpan? duration = TimeSpan.Zero;
+
+                if (!string.IsNullOrEmpty(dateString))
+                {
+                    date = DateTime.Parse(dateString);
+                }
+
+                var durationString = document.QuerySelector(".info-panel.duration")?.QuerySelector(".duration")?.TextContent?.Trim();
+
+                if (!string.IsNullOrEmpty(durationString))
+                {
+                    durationString = durationString.Contains("min") ? Regex.Match(durationString, @"\d+").Value : durationString;
+                    duration = TimeSpan.FromMinutes(int.Parse(durationString));
+                    duration = duration > TimeSpan.FromHours(23) ? TimeSpan.FromHours(23) : duration;
+                }
+
+                var studioMovie = new StudioMovie
+                {
+                    Title = title,
+                    Description = description,
+                    Categories = categories,
+                    Models = models,
+                    Attachments = attachments,
+                    Uri = movieUri,
+                    Date = date,
+                    Duration = duration
+                };
+
+                return studioMovie;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            return null;
         }
 
         #endregion

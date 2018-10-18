@@ -11,7 +11,7 @@ namespace WebApp.Studios
 
         public string Description { get; set; }
 
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
 
         public TimeSpan? Duration { get; set; }
 

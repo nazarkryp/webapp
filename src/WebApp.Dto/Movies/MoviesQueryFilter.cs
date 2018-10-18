@@ -1,4 +1,5 @@
-﻿using WebApp.Dto.Common;
+﻿using System;
+using WebApp.Dto.Common;
 
 namespace WebApp.Dto.Movies
 {
@@ -11,5 +12,7 @@ namespace WebApp.Dto.Movies
         public string[] Categories { get; set; }
 
         public int[] Models { get; set; }
+
+        public DateTime? Date { get; set; }
     }
 }

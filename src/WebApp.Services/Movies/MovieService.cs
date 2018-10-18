@@ -35,12 +35,9 @@ namespace WebApp.Services.Movies
                 SearchQuery = queryFilter?.Search,
                 Studios = queryFilter?.Studios,
                 Categories = queryFilter?.Categories,
-                Models = queryFilter?.Models
+                Models = queryFilter?.Models,
+                Date = queryFilter?.Date
             };
-
-            //var page = pagingFilter.Categories?.Length > 0
-            //    ? await _movies.GetCategoriesMoviesAsync(pagingFilter)
-            //    : await _movies.GetPageAsync(pagingFilter);
 
             var page = await _movies.FindMoviesAsync(pagingFilter);
 

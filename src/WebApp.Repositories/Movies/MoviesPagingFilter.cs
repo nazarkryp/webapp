@@ -1,4 +1,5 @@
-﻿using WebApp.Repositories.Common;
+﻿using System;
+using WebApp.Repositories.Common;
 
 namespace WebApp.Repositories.Movies
 {
@@ -11,5 +12,7 @@ namespace WebApp.Repositories.Movies
         public string[] Categories { get; set; }
 
         public int[] Models { get; set; }
+
+        public DateTime? Date { get; set; }
     }
 }

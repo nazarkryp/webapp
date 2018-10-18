@@ -13,7 +13,7 @@ using WebApp.Storage;
 
 namespace WebApp.Web.Controllers
 {
-    // [Authorize]
+    [Authorize]
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
