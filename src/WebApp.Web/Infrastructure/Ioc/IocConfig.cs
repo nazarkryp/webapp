@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using WebApp.Ioc;
+using WebApp.Ioc.Configurations;
 using WebApp.Web.Infrastructure.Configuration;
 
 namespace WebApp.Web.Infrastructure.Ioc
@@ -10,8 +11,10 @@ namespace WebApp.Web.Infrastructure.Ioc
     {
         public static void ConfigureIoc(IConfiguration configuration, IServiceCollection services)
         {
+            var connectionString = configuration["connectionString"];
+
             services.ConfigureMapping();
-            services.ConfigureRepositories();
+            services.ConfigureRepositories(connectionString);
             services.ConfigureCloudinary();
             services.ConfigureServices();
             services.ConfigureSecurity();

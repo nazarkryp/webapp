@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using WebApp.Ioc;
+using WebApp.Ioc.Configurations;
 using WebApp.Jobs.Sync.Configuration;
 using WebApp.Jobs.Sync.Infrastructure.Communication;
 using WebApp.Jobs.Sync.Jobs;
@@ -12,12 +13,12 @@ namespace WebApp.Jobs.Sync.Infrastructure
 {
     internal class IocConfig
     {
-        public static IServiceProvider ConfigureIoc()
+        public static IServiceProvider ConfigureIoc(string connectionString)
         {
             var services = new ServiceCollection();
 
             services.ConfigureMapping();
-            services.ConfigureRepositories();
+            services.ConfigureRepositories(connectionString);
             services.ConfigureInfrastructure();
             services.ConfigureStudioClients();
 

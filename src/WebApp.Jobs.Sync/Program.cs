@@ -19,7 +19,7 @@ namespace WebApp.Jobs.Sync
         {
             try
             {
-                var serviceProvider = IocConfig.ConfigureIoc();
+                var serviceProvider = IocConfig.ConfigureIoc("Data Source=.;Initial Catalog=WebApp;Integrated Security=True;Connect Timeout=60;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False");
                 var studioClients = serviceProvider.GetServices<IStudioClient>().Where(e => !string.IsNullOrEmpty(e.StudioName)).ToList();
                 var detailsJob = serviceProvider.GetService<IDetailsJob>();
                 //var scrapper = serviceProvider.GetService<IScrapper>();
