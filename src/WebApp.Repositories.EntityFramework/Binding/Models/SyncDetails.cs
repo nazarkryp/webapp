@@ -10,7 +10,7 @@ namespace WebApp.Repositories.EntityFramework.Binding.Models
 
         public Studio Studio { get; set; }
 
-        public DateTime LastSyncDate { get; set; }
+        public DateTime? LastSyncDate { get; set; }
 
         public int? LastSyncPage { get; set; }
     }

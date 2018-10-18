@@ -65,26 +65,26 @@ namespace WebApp.Jobs.Sync.Scrappers
 
         private async Task ProcessScrappingAsync(IEnumerable<SyncQueueItem> syncQueue)
         {
-            var tasks = new List<Task>(2);
+            var tasks = new List<Task>();
 
             foreach (var item in syncQueue)
             {
-                if (item.SyncDetails == null)
+                if (item.SyncDetails.LastSyncPage == null)
                 {
                     var startFrom = await item.StudioClient.GetPagesCountAsync();
-                    var task = StartGettingMoviesAsync(item.StudioClient, startFrom, 0, SaveMoviesAsync, null, item.SyncDetails.Studio);
+                    var task = StartGettingMoviesAsync(item.StudioClient, startFrom, 0, SaveMoviesAsync, null, item.SyncDetails);
                     tasks.Add(task);
                 }
                 else if (item.SyncDetails.LastSyncPage - 1 >= 1)
                 {
-                    var startFrom = item.SyncDetails.LastSyncPage - 1;
-                    var task = StartGettingMoviesAsync(item.StudioClient, startFrom, 0, SaveMoviesAsync, null, item.SyncDetails.Studio);
+                    var startFrom = (int)item.SyncDetails.LastSyncPage - 1;
+                    var task = StartGettingMoviesAsync(item.StudioClient, startFrom, 0, SaveMoviesAsync, null, item.SyncDetails);
                     tasks.Add(task);
                 }
                 else
                 {
                     var lastestMovies = await _movieRepository.FindLatestAsync(item.SyncDetails.Studio.StudioId);
-                    var task = StartGettingMoviesAsync(item.StudioClient, 1, 2, SaveMoviesAsync, lastestMovies, item.SyncDetails.Studio);
+                    var task = StartGettingMoviesAsync(item.StudioClient, 1, 2, SaveMoviesAsync, lastestMovies, item.SyncDetails);
                     tasks.Add(task);
                 }
             }
@@ -94,20 +94,20 @@ namespace WebApp.Jobs.Sync.Scrappers
 
         private async Task SaveMoviesAsync(IEnumerable<Movie> items)
         {
-            Interlocked.Increment(ref counter);
+            //Interlocked.Increment(ref counter);
 
             foreach (var studioMovie in items)
             {
                 _buffer.Add(studioMovie);
             }
 
-            if (counter == 2)
+            //if (counter % 2 == 0)
             {
-                var itemsToSave = _buffer.OrderByDescending(e => e.Date).ToList();
+                var itemsToSave = _buffer.OrderByDescending(e => e.Duration).ToList();
                 _buffer.Clear();
-                Interlocked.Exchange(ref counter, 0);
+                //Interlocked.Exchange(ref counter, 0);
 
-                Console.WriteLine($"Total {itemsToSave.Count} items to save");
+                Console.WriteLine($"Saving {itemsToSave.Count} videos");
                 await _movieRepository.AddRangeAsync(itemsToSave);
                 Console.WriteLine("Saved");
             }
@@ -121,6 +121,14 @@ namespace WebApp.Jobs.Sync.Scrappers
         {
             var studio = await GetStudioAsync(studioClient);
             var syncDetails = await _syncDetailsRepository.FindByStudioAsync(studio.StudioId);
+
+            if (syncDetails == null)
+            {
+                syncDetails = await _syncDetailsRepository.AddAsync(new SyncDetails
+                {
+                    Studio = studio
+                });
+            }
 
             return syncDetails;
         }
@@ -142,7 +150,7 @@ namespace WebApp.Jobs.Sync.Scrappers
             return studio;
         }
 
-        private async Task StartGettingMoviesAsync(IStudioClient studioClient, int start, int end, Func<IEnumerable<Movie>, Task> pagesScraped, IEnumerable<Movie> latest, WebApp.Domain.Entities.Studio studio)
+        private async Task StartGettingMoviesAsync(IStudioClient studioClient, int start, int end, Func<IEnumerable<Movie>, Task> pagesScraped, IEnumerable<Movie> latest, WebApp.Domain.Entities.SyncDetails syncDetails)
         {
             var completed = 0;
             var cts = new CancellationTokenSource();
@@ -153,14 +161,14 @@ namespace WebApp.Jobs.Sync.Scrappers
                     Console.WriteLine($"Getting {studioClient.StudioName} - {pageIndex}");
                     var movies = await studioClient.GetMoviesAsync(pageIndex);
                     var studioMovies = movies as StudioMovie[] ?? movies.ToArray();
-
+                    syncDetails.LastSyncPage = pageIndex;
                     if (latest != null && studioMovies.Any(e => latest.Any(l => l.Uri == e.Uri || l.Date > e.Date)))
                     {
                         Interlocked.Increment(ref completed);
                         Console.WriteLine($"Need to cancel: {studioClient.StudioName}");
                         var enumerable = latest as Movie[] ?? latest.ToArray();
                         var date = enumerable.OrderByDescending(e => e.Date).LastOrDefault()?.Date;
-                        var result =  studioMovies.Where(e => enumerable.All(l => !UrlsEqual(e.Uri, l.Uri)) && e.Date >= date);
+                        var result = studioMovies.Where(e => enumerable.All(l => !UrlsEqual(e.Uri, l.Uri)) && e.Date >= date);
 
                         return result;
                     }
@@ -177,14 +185,16 @@ namespace WebApp.Jobs.Sync.Scrappers
 
                     var movies = result.SelectMany(e => e);
 
-                    var moviesToSave = _mapper.Map<IEnumerable<Movie>>(movies);
+                    var moviesToSave = _mapper.Map<IEnumerable<Movie>>(movies).ToList();
 
                     foreach (var movie in moviesToSave)
                     {
-                        movie.Studio = studio;
+                        movie.Studio = syncDetails.Studio;
                     }
 
                     await pagesScraped(moviesToSave);
+                    syncDetails.LastSyncDate = DateTime.Now;
+                    await _syncDetailsRepository.UpdateAsync(syncDetails);
 
                     semaphore.Release();
                 }, cts.Token);

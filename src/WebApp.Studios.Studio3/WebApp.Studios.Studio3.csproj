@@ -4,4 +4,18 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="0.9.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebApp.Studios\WebApp.Studios.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Activities">
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.1\System.Activities.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

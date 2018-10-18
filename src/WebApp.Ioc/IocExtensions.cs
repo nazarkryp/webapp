@@ -24,6 +24,7 @@ using WebApp.Storage.Cloudinary.Configuration;
 using WebApp.Studios;
 using WebApp.Studios.Studio1;
 using WebApp.Studios.Studio2;
+using WebApp.Studios.Studio3;
 
 namespace WebApp.Ioc
 {
@@ -39,6 +40,7 @@ namespace WebApp.Ioc
         public static void ConfigureRepositories(this IServiceCollection services)
         {
             services.AddDbContext<WebAppDbContext>(options => options.UseSqlServer("Data Source=.;Initial Catalog=WebApp;Integrated Security=True;Connect Timeout=60;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"));
+            //services.AddDbContext<WebAppDbContext>(options => options.UseSqlServer("Server=tcp:krypapp.database.windows.net,1433;Initial Catalog=Movies;Persist Security Info=False;User ID=nazarkryp;Password=Nk@809863;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"));
             services.AddTransient<IMediaRepository, MediaRepository>();
             services.AddTransient<IModelRepository, ModelRepository>();
             services.AddTransient<IStudioRepository, StudioRepository>();
@@ -78,6 +80,7 @@ namespace WebApp.Ioc
         {
             services.AddTransient<IStudioClient, Studio1Client>();
             services.AddTransient<IStudioClient, Studio2Client>();
+            services.AddTransient<IStudioClient, Studio3Client>();
         }
     }
 }

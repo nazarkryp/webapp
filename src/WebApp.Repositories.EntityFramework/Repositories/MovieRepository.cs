@@ -55,7 +55,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
         public async Task<IEnumerable<Movie>> FindMoviesWithoutDetailsAsync(int studioId)
         {
             var movies = await Context.Set<Binding.Models.Movie>()
-                .Where(e => e.StudioId == studioId && e.Duration == null)
+                .Where(e => e.StudioId == studioId && e.Description == null)
                 .OrderByDescending(e => e.MovieId)
                 .ToListAsync();
 
@@ -208,7 +208,7 @@ namespace WebApp.Repositories.EntityFramework.Repositories
         private async Task<IList<Binding.Models.Category>> SaveCategoriesAsync(IEnumerable<Category> categories)
         {
             var existingCategories = await Context.Set<Binding.Models.Category>().ToListAsync();
-            var newCategories = categories.Where(e => !existingCategories.Any(ex => string.Equals(ex.Name, e.Name, StringComparison.CurrentCultureIgnoreCase)));
+            var newCategories = categories.Where(e => !existingCategories.Any(ex => string.Equals(ex.Name, e.Name.Trim(), StringComparison.CurrentCultureIgnoreCase)));
 
             newCategories = newCategories
                 .GroupBy(e => e.Name)

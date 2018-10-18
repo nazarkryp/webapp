@@ -129,37 +129,6 @@ namespace WebApp.Studios.Studio2
             return studioMovie;
         }
 
-        private StudioMovie ParseElement(IElement element)
-        {
-            var movie = new StudioMovie();
-
-            if (element.Children.FirstOrDefault(child => child.ClassList.Contains("title")) is IHtmlAnchorElement titleElement)
-            {
-                movie.Title = titleElement.Text;
-                movie.Uri = titleElement.Href;
-            }
-
-            if (element.Children.FirstOrDefault(child => child.ClassList.Contains("scene-thumb")) is IHtmlAnchorElement thumbElement)
-            {
-                var img = thumbElement.Children.FirstOrDefault(e => e.LocalName == "img") as IHtmlImageElement;
-
-                if (img != null)
-                {
-                    movie.Attachments = new List<string>
-                    {
-                        img.Source.StartsWith("about://", StringComparison.Ordinal) ? $"http://{img.Source.Substring("about://".Length)}" : img.Source
-                    };
-                }
-            }
-
-            if (element.Children.FirstOrDefault(child => child.ClassList.Contains("entry-date")) is IHtmlParagraphElement paragraphElement)
-            {
-                movie.Date = DateTime.Parse(paragraphElement.InnerHtml);
-            }
-
-            return movie;
-        }
-
         private static StudioMovie ParseLegacyElement(IElement element)
         {
             var movie = new StudioMovie();

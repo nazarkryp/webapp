@@ -8,8 +8,8 @@ namespace WebApp.Domain.Entities
 
         public Studio Studio { get; set; }
 
-        public DateTime LastSyncDate { get; set; }
+        public DateTime? LastSyncDate { get; set; }
 
-        public int LastSyncPage { get; set; }
+        public int? LastSyncPage { get; set; }
     }
 }

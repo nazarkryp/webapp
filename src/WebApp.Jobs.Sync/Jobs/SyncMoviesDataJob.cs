@@ -51,7 +51,7 @@ namespace WebApp.Jobs.Sync.Jobs
             }
             else if (syncDetails.LastSyncPage - 1 >= 1)
             {
-                var startFrom = syncDetails.LastSyncPage - 1;
+                var startFrom = (int)syncDetails.LastSyncPage - 1;
                 await SyncMoviesAsync(studioClient, startFrom, studio.StudioId, syncDetails);
             }
             else

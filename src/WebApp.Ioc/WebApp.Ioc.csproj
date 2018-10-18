@@ -22,6 +22,7 @@
     <ProjectReference Include="..\WebApp.Storage\WebApp.Storage.csproj" />
     <ProjectReference Include="..\WebApp.Studios.Studio1\WebApp.Studios.Studio1.csproj" />
     <ProjectReference Include="..\WebApp.Studios.Studio2\WebApp.Studios.Studio2.csproj" />
+    <ProjectReference Include="..\WebApp.Studios.Studio3\WebApp.Studios.Studio3.csproj" />
     <ProjectReference Include="..\WebApp.Studios\WebApp.Studios.csproj" />
   </ItemGroup>
 

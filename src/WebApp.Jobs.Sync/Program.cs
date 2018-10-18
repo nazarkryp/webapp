@@ -9,8 +9,7 @@ using WebApp.Jobs.Sync.Infrastructure;
 using WebApp.Jobs.Sync.Jobs;
 using WebApp.Jobs.Sync.Scrappers;
 using WebApp.Studios;
-using WebApp.Studios.Studio1;
-using WebApp.Studios.Studio2;
+using WebApp.Studios.Studio3;
 
 namespace WebApp.Jobs.Sync
 {
@@ -21,35 +20,28 @@ namespace WebApp.Jobs.Sync
             try
             {
                 var serviceProvider = IocConfig.ConfigureIoc();
-                var studioClients = serviceProvider.GetServices<IStudioClient>().Where(e => !string.IsNullOrEmpty(e.StudioName));
-                //var job = serviceProvider.GetService<IJob>();
-
+                var studioClients = serviceProvider.GetServices<IStudioClient>().Where(e => !string.IsNullOrEmpty(e.StudioName)).ToList();
                 var detailsJob = serviceProvider.GetService<IDetailsJob>();
-                var scrapper = serviceProvider.GetService<IScrapper>();
-                await scrapper.ScrapMoviesAsync(studioClients.ToArray());
+                //var scrapper = serviceProvider.GetService<IScrapper>();
+                //await scrapper.ScrapMoviesAsync(studioClients.ToArray());
 
-                //foreach (var studioClient in studioClients)
+                //var getDetailsTasks = new List<Task>
                 //{
-                //    Console.WriteLine($"Scrapping: {studioClient.StudioName}");
-                //    await job.SyncAsync(studioClient);
-                //}
-                //await Task.WhenAll(studioClients.Select(job.SyncAsync));
+                //    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio2ClientConstants.StudioName))
+                //};
+                //await Task.WhenAll(getDetailsTasks);
+
+                //getDetailsTasks = new List<Task>
+                //{
+                //    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName))
+                //};
 
                 var getDetailsTasks = new List<Task>
                 {
-                    /*detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName)),*/
-                    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio2ClientConstants.StudioName))
-                };
-                await Task.WhenAll(getDetailsTasks);
-
-                getDetailsTasks = new List<Task>
-                {
-                    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio1ClientConstants.StudioName))
+                    detailsJob.SyncMovieDetailsAsync(studioClients?.FirstOrDefault(e => e.StudioName == Studio3ClientConstants.StudioName))
                 };
 
                 await Task.WhenAll(getDetailsTasks);
-
-                //await Task.WhenAll(studioClients.Select(detailsJob.SyncMovieDetailsAsync));
             }
             catch (Exception e)
             {
