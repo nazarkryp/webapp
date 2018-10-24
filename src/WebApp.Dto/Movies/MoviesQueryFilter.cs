@@ -11,7 +11,7 @@ namespace WebApp.Dto.Movies
 
         public string[] Categories { get; set; }
 
-        public int[] Models { get; set; }
+        public string[] Models { get; set; }
 
         public DateTime? Date { get; set; }
     }

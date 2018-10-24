@@ -86,8 +86,14 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
             if (pagingFilter.Models?.Length >= 1)
             {
-                var ids = pagingFilter.Models.ToArray();
-                var idsLength = ids.Length;
+                var lowerModelsNames = pagingFilter.Models.Select(e => e.ToLower()).ToArray();
+                var ids = await Context.Set<Binding.Models.Model>().Where(e => lowerModelsNames.Contains(e.Name.ToLower())).Select(e => e.ModelId).ToListAsync();
+                var idsLength = ids.Count;
+
+                if (idsLength == 0)
+                {
+                    return new Page<Movie>();
+                }
 
                 movies = Context.Set<Binding.Models.Movie>()
                     .Where(e => e.MovieModels.Count(x => ids.Contains(x.ModelId)) == idsLength);
@@ -98,6 +104,11 @@ namespace WebApp.Repositories.EntityFramework.Repositories
                 var lowerCategoriesNames = pagingFilter.Categories.Select(e => e.ToLower()).ToArray();
                 var ids = await Context.Set<Binding.Models.Category>().Where(e => lowerCategoriesNames.Contains(e.Name.ToLower())).Select(e => e.CategoryId).ToListAsync();
                 var idsLength = ids.Count;
+
+                if (idsLength == 0)
+                {
+                    return new Page<Movie>();
+                }
 
                 movies = (movies ?? Context.Set<Binding.Models.Movie>())
                     .Where(e => e.MovieCategories.Count(x => ids.Contains(x.CategoryId)) == idsLength);
@@ -290,6 +301,8 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
                 if (targetMovie != null)
                 {
+                    var attachments = sourceMovie.Attachments.Where(e => existingMovieAttachments.All(a => a.Uri != e.Uri));
+                    sourceMovie.Attachments = attachments.ToList();
                     targetMovie = _mapper.Map(sourceMovie, targetMovie);
 
                     //MapAttachments(sourceMovie, targetMovie, existingMovieAttachments);
@@ -301,17 +314,17 @@ namespace WebApp.Repositories.EntityFramework.Repositories
 
         private static void MapAttachments(Movie source, Binding.Models.Movie targetMovie, IList<Binding.Models.Attachment> existingMovieAttachments)
         {
-            var movieAttachments = existingMovieAttachments?.Where(e => e.MovieId == targetMovie.MovieId).ToList();
+            //var movieAttachments = existingMovieAttachments?.Where(e => e.MovieId == targetMovie.MovieId).ToList();
 
-            if (movieAttachments != null && movieAttachments.Any())
-            {
-                var attachmentsToRemove = targetMovie.Attachments.Where(e => movieAttachments.Any(ma => ma.AttachmentId == e.AttachmentId));
+            //if (movieAttachments != null && movieAttachments.Any())
+            //{
+            //    var attachmentsToRemove = targetMovie.Attachments.Where(e => movieAttachments.Any(ma => ma.AttachmentId == e.AttachmentId));
 
-                foreach (var attachment in attachmentsToRemove)
-                {
-                    targetMovie.Attachments.Remove(attachment);
-                }
-            }
+            //    foreach (var attachment in attachmentsToRemove)
+            //    {
+            //        targetMovie.Attachments.Remove(attachment);
+            //    }
+            //}
         }
 
         private static void MapCategoriesReferences(Movie source, Binding.Models.Movie targetMovie, IList<Binding.Models.MovieCategory> existingMovieCategories, IList<Binding.Models.Category> existingCategories)

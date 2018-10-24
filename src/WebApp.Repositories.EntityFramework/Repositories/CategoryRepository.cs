@@ -28,6 +28,13 @@ namespace WebApp.Repositories.EntityFramework.Repositories
             return _mapper.Map<IEnumerable<Category>>(categories);
         }
 
+        public async Task<Category> FindCategoryAsync(int categoryId)
+        {
+            var category = await Context.Set<Binding.Models.Category>().FirstOrDefaultAsync(e=>e.CategoryId == categoryId);
+
+            return _mapper.Map<Category>(category);
+        }
+
         public async Task<IEnumerable<Category>> FindTopCategoriesAsync()
         {
             var categories = await Context.Set<Binding.Models.TopCategory>()

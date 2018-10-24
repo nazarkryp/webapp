@@ -9,6 +9,8 @@ namespace WebApp.Repositories.Repositories
     {
         Task<IEnumerable<Category>> FindCategoriesAsync();
 
+        Task<Category> FindCategoryAsync(int categoryId);
+
         Task<IEnumerable<Category>> FindTopCategoriesAsync();
     }
 }

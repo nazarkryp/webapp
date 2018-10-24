@@ -65,10 +65,12 @@ namespace WebApp.Studios.Studio3
                 var parser = new HtmlParser();
                 var document = await parser.ParseAsync(html);
 
+                var movieId = int.Parse(movieUri.Split('/').LastOrDefault());
+
                 var title = document.QuerySelector(".video-titles h1")?.TextContent?.Trim();
                 var categories = document.QuerySelector(".tags-box")?.QuerySelectorAll("a")?.Select(e => e.TextContent.Trim()).Distinct();
                 var description = document.QuerySelector(".box-container")?.TextContent?.Trim();
-                var attachments = document.QuerySelector(".photo-slider-guest")?.QuerySelectorAll("a")?.Select(e => e.GetAttribute("href")).Distinct();
+                var attachments = document.QuerySelector(".photo-slider-guest")?.QuerySelectorAll("a")?.Select(e => e.GetAttribute("href") + $"#{movieId}").Distinct();
                 var models = document.QuerySelector(".pornstars-box").QuerySelectorAll("a.name").Select(e => e.TextContent.Trim()).Distinct();
                 var dateString = document.QuerySelector("time")?.TextContent;
                 DateTime? date = null;

@@ -10,5 +10,7 @@ namespace WebApp.Services.Movies
         Task<Page<Movie>> GetMoviesAsync(MoviesQueryFilter queryFilter);
 
         Task<Movie> GetMovieAsync(int movieId);
+
+        Task AssignMovieCategoryAsync(int movieId, int categoryId);
     }
 }

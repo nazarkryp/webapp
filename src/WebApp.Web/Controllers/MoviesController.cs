@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,6 +35,21 @@ namespace WebApp.Web.Controllers
             var movie = await _movieService.GetMovieAsync(movieId);
 
             return Ok(movie);
+        }
+
+        [HttpPut("{movieId:int}/categories/{categoryId:int}")]
+        public async Task<IActionResult> AssignCategoryAsync(int movieId, int categoryId)
+        {
+            try
+            {
+                await _movieService.AssignMovieCategoryAsync(movieId, categoryId);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
+            return NoContent();
         }
     }
 }

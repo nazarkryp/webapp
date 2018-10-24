@@ -19,10 +19,10 @@ namespace WebApp.Domain.Entities
 
         public Studio Studio { get; set; }
 
-        public IEnumerable<Attachment> Attachments { get; set; }
+        public IList<Attachment> Attachments { get; set; }
 
-        public IEnumerable<Model> Models { get; set; }
+        public IList<Model> Models { get; set; }
 
-        public IEnumerable<Category> Categories { get; set; }
+        public IList<Category> Categories { get; set; }
     }
 }
